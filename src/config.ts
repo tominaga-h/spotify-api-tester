@@ -6,7 +6,11 @@ export interface SpotifyEnvironmentConfig {
 
 function parseScopes(raw: string | undefined): string[] {
   if (!raw) {
-    return ["user-read-email"];
+    return [
+      "user-read-email",
+      "user-read-currently-playing",
+      "user-read-playback-state",
+    ];
   }
 
   return Array.from(

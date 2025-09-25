@@ -6,6 +6,7 @@ import { getSpotifyConfig } from "./config.js";
 import { CallbackPage } from "./pages/CallbackPage.js";
 import { HomePage } from "./pages/HomePage.js";
 import { LoginPage } from "./pages/LoginPage.js";
+import { TrackPage } from "./pages/TrackPage.js";
 
 export function App() {
   const [{ config, error: configError }] = useState(() => {
@@ -39,6 +40,7 @@ export function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/callback" element={<CallbackPage />} />
+          <Route path="/track" element={<TrackPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </SpotifyAuthProvider>

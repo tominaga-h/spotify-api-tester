@@ -28,6 +28,10 @@ section {
   box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.2);
 }
 
+.section-actions {
+  margin-bottom: 1rem;
+}
+
 h1,
 h2 {
   margin-top: 0;

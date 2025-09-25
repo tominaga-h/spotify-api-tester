@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { useSpotifyAuthContext } from "../context/SpotifyAuthContext.js";
 
@@ -26,6 +26,7 @@ export function HomePage() {
     (async () => {
       try {
         const profileResponse = await client.currentUser.profile();
+        console.log(await client.player.getCurrentlyPlayingTrack("ES"));
 
         if (!cancelled) {
           setProfile(profileResponse as SpotifyProfile);
@@ -99,6 +100,13 @@ export function HomePage() {
         ) : (
           <p>No profile loaded yet.</p>
         )}
+      </section>
+
+      <section>
+        <h2>Now Playing</h2>
+        <p>
+          View the currently playing track on the <Link to="/track">Now Playing page</Link>.
+        </p>
       </section>
     </main>
   );
