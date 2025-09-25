@@ -11,6 +11,11 @@ export interface SpotifyOAuthConfig {
   scopes: string[];
 }
 
+export type SpotifyClientView = Pick<
+  SpotifyOAuthConfig,
+  "clientId" | "redirectUri" | "scopes"
+>;
+
 class ServerAuthorizationCodeWithPKCEStrategy extends AuthorizationCodeWithPKCEStrategy {
   public async buildAuthorizationUrl(codeChallenge: string): Promise<string> {
     return this.generateRedirectUrlForUser(this.scopes, codeChallenge);
@@ -24,34 +29,41 @@ class ServerAuthorizationCodeWithPKCEStrategy extends AuthorizationCodeWithPKCES
   }
 }
 
-function createAuthStrategy(config: SpotifyOAuthConfig) {
-  return new ServerAuthorizationCodeWithPKCEStrategy(
-    config.clientId,
-    config.redirectUri,
-    config.scopes
-  );
-}
+export class SpotifyOAuthService {
+  public constructor(private readonly config: SpotifyOAuthConfig) {}
 
-export async function createAuthorizationUrl(
-  config: SpotifyOAuthConfig,
-  state: string,
-  codeChallenge: string
-): Promise<string> {
-  const strategy = createAuthStrategy(config);
-  const baseUrl = await strategy.buildAuthorizationUrl(codeChallenge);
+  public get clientView(): SpotifyClientView {
+    const { clientId, redirectUri, scopes } = this.config;
+    return { clientId, redirectUri, scopes };
+  }
 
-  const url = new URL(baseUrl);
-  url.searchParams.set("state", state);
-  return url.toString();
-}
+  public async createAuthorizationUrl(
+    state: string,
+    codeChallenge: string
+  ): Promise<string> {
+    const strategy = this.createStrategy();
+    const authorizeUrl = await strategy.buildAuthorizationUrl(codeChallenge);
 
-export async function exchangeCodeForToken(
-  config: SpotifyOAuthConfig,
-  code: string,
-  codeVerifier: string
-): Promise<AccessToken> {
-  const strategy = createAuthStrategy(config);
-  return strategy.exchangeAuthorizationCode(code, codeVerifier);
+    const url = new URL(authorizeUrl);
+    url.searchParams.set("state", state);
+    return url.toString();
+  }
+
+  public exchangeCodeForToken(code: string, verifier: string): Promise<AccessToken> {
+    return this.createStrategy().exchangeAuthorizationCode(code, verifier);
+  }
+
+  public createApiClient(token: AccessToken): SpotifyApi {
+    return SpotifyApi.withAccessToken(this.config.clientId, token);
+  }
+
+  private createStrategy(): ServerAuthorizationCodeWithPKCEStrategy {
+    return new ServerAuthorizationCodeWithPKCEStrategy(
+      this.config.clientId,
+      this.config.redirectUri,
+      this.config.scopes
+    );
+  }
 }
 
 export function createSpotifyApi(
@@ -59,4 +71,20 @@ export function createSpotifyApi(
   token: AccessToken
 ): SpotifyApi {
   return SpotifyApi.withAccessToken(config.clientId, token);
+}
+
+export async function createAuthorizationUrl(
+  config: SpotifyOAuthConfig,
+  state: string,
+  codeChallenge: string
+): Promise<string> {
+  return new SpotifyOAuthService(config).createAuthorizationUrl(state, codeChallenge);
+}
+
+export function exchangeCodeForToken(
+  config: SpotifyOAuthConfig,
+  code: string,
+  verifier: string
+): Promise<AccessToken> {
+  return new SpotifyOAuthService(config).exchangeCodeForToken(code, verifier);
 }
