@@ -3,7 +3,18 @@
   "version": "1.0.0",
   "description": "spotify api tester project",
   "author": "",
+  "type": "module",
   "main": "index.js",
   "scripts": {
+    "build": "tsc",
+    "run": "npm run build --silent && node dist/index.js"
+  },
+  "devDependencies": {
+    "@spotify/web-api-ts-sdk": "^1.2.0",
+    "@types/node": "^24.5.2",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
   }
 }
