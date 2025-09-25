@@ -29,7 +29,16 @@ section {
 }
 
 .section-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
   margin-bottom: 1rem;
+}
+
+.player-controls {
+  display: flex;
+  gap: 0.75rem;
 }
 
 h1,
@@ -50,6 +59,12 @@ button {
 
 button:hover {
   background: #1ed760;
+}
+
+button:disabled {
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(17, 17, 17, 0.6);
+  cursor: not-allowed;
 }
 
 .profile {
@@ -87,4 +102,15 @@ pre.error,
 p.error {
   color: #ff6b6b;
   white-space: pre-wrap;
+}
+
+.playlist-tracks {
+  margin: 1rem 0 0;
+  padding-left: 1.5rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.playlist-tracks li {
+  line-height: 1.4;
 }
