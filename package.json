@@ -1,0 +1,9 @@
+{
+  "name": "spotify-test",
+  "version": "1.0.0",
+  "description": "spotify api tester project",
+  "author": "",
+  "main": "index.js",
+  "scripts": {
+  }
+}
