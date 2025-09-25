@@ -1,18 +1,62 @@
-import { SpotifyApi } from "@spotify/web-api-ts-sdk";
+import {
+  AuthorizationCodeWithPKCEStrategy,
+  SpotifyApi,
+  type AccessToken,
+} from "@spotify/web-api-ts-sdk";
 
-export function getSpotifyApiClient() {
+export interface SpotifyOAuthConfig {
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+  scopes: string[];
+}
 
-  const clientId = process.env.SPOTIFY_API_CLIENT_ID;
-  const clientSecret = process.env.SPOTIFY_API_CLIENT_SECRET;
-
-  if (!clientId || !clientSecret) {
-    throw new Error("SPOTIFY_API_CLIENT_ID or SPOTIFY_API_CLIENT_SECRET is not set");
+class ServerAuthorizationCodeWithPKCEStrategy extends AuthorizationCodeWithPKCEStrategy {
+  public async buildAuthorizationUrl(codeChallenge: string): Promise<string> {
+    return this.generateRedirectUrlForUser(this.scopes, codeChallenge);
   }
 
-  const scopes = [
-    "user-read-private",
-    "user-read-email",
-  ];
+  public async exchangeAuthorizationCode(
+    code: string,
+    verifier: string
+  ): Promise<AccessToken> {
+    return this.exchangeCodeForToken(code, verifier);
+  }
+}
 
-  return SpotifyApi.withUserAuthorization(clientId, "http://localhost/", scopes);
+function createAuthStrategy(config: SpotifyOAuthConfig) {
+  return new ServerAuthorizationCodeWithPKCEStrategy(
+    config.clientId,
+    config.redirectUri,
+    config.scopes
+  );
+}
+
+export async function createAuthorizationUrl(
+  config: SpotifyOAuthConfig,
+  state: string,
+  codeChallenge: string
+): Promise<string> {
+  const strategy = createAuthStrategy(config);
+  const baseUrl = await strategy.buildAuthorizationUrl(codeChallenge);
+
+  const url = new URL(baseUrl);
+  url.searchParams.set("state", state);
+  return url.toString();
+}
+
+export async function exchangeCodeForToken(
+  config: SpotifyOAuthConfig,
+  code: string,
+  codeVerifier: string
+): Promise<AccessToken> {
+  const strategy = createAuthStrategy(config);
+  return strategy.exchangeAuthorizationCode(code, codeVerifier);
+}
+
+export function createSpotifyApi(
+  config: SpotifyOAuthConfig,
+  token: AccessToken
+): SpotifyApi {
+  return SpotifyApi.withAccessToken(config.clientId, token);
 }
