@@ -557,8 +557,8 @@ const skipNext = () => handleSkip('next');
           <VCard class="playlist-card" elevation="12" rounded="xl">
             <div class="playlist-card__header">
               <div>
-                <div class="text-subtitle-2 text-medium-emphasis">Current Playlist Context</div>
-                <div class="text-h5 font-weight-bold">
+                <div class="text-subtitle-2 text-medium-emphasis text-white">Current Playlist Context</div>
+                <div class="text-h5 font-weight-bold text-white">
                   {{ playlist ? playlist.name : 'プレイリスト情報はありません' }}
                 </div>
               </div>
@@ -636,6 +636,9 @@ const skipNext = () => handleSkip('next');
 </template>
 
 <style lang="scss">
+.text-white {
+  color: #fff !important;
+}
 .track-page {
   position: relative;
   min-height: 100vh;
