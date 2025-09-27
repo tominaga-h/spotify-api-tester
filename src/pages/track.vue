@@ -508,8 +508,8 @@ const skipNext = () => handleSkip('next');
           <VCard class="track-card" elevation="12" rounded="xl">
             <div class="track-card__header">
               <div>
-                <div class="text-subtitle-2 text-medium-emphasis">Playback Snapshot</div>
-                <div class="text-h5 font-weight-bold">再生情報の概要</div>
+                <div class="text-subtitle-2 text-medium-emphasis text-white">Playback Snapshot</div>
+                <div class="text-h5 font-weight-bold text-white">再生情報の概要</div>
               </div>
             </div>
 
