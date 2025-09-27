@@ -36,7 +36,8 @@ interface PlaylistSummary {
 const maxPlaylistTracks = 25;
 
 const router = useRouter();
-const { status, client, error } = useSpotifyAuth();
+const spotifyAuth = useSpotifyAuth();
+const { status, client, error } = spotifyAuth;
 
 const loading = ref(false);
 const apiError = ref<Error | null>(null);
@@ -47,8 +48,8 @@ const playlistLoading = ref(false);
 const playlistError = ref<Error | null>(null);
 const refreshTick = ref(0);
 
-const isAuthenticating = computed(() => status.value === 'authenticating');
-const isAuthenticated = computed(() => status.value === 'authenticated' && !!client.value);
+const isAuthenticating = computed(() => status?.value === 'authenticating');
+const isAuthenticated = computed(() => status?.value === 'authenticated' && !!client?.value);
 
 const albumImage = computed(() => {
   if (!track.value?.album?.images?.length) {
@@ -121,11 +122,11 @@ const deviceStatus = computed(() => {
 });
 
 const statusChipColor = computed(() => {
-  if (isAuthenticating.value) {
+  if (isAuthenticating?.value) {
     return 'info';
   }
 
-  if (isAuthenticated.value) {
+  if (isAuthenticated?.value) {
     return 'success';
   }
 
@@ -167,10 +168,10 @@ const showPlaylistLimitNotice = computed(
   () => !!playlist.value && playlistTracks.value.length > maxPlaylistTracks
 );
 
-const playbackButtonDisabled = computed(() => !isAuthenticated.value || loading.value);
+const playbackButtonDisabled = computed(() => !isAuthenticated?.value || loading.value);
 
 watch(
-  () => status.value,
+  () => status?.value,
   (currentStatus) => {
     if (currentStatus === 'idle' || currentStatus === 'error') {
       router.replace('/login');
@@ -182,7 +183,7 @@ watch(
 let fetchToken = 0;
 
 watch(
-  [() => client.value, () => isAuthenticated.value, () => refreshTick.value],
+  [() => client?.value, () => isAuthenticated?.value, () => refreshTick.value],
   async ([spotifyClient, authenticated]) => {
     if (!spotifyClient || !authenticated) {
       track.value = null;
@@ -289,7 +290,7 @@ const goHome = () => {
 };
 
 const handleRefresh = () => {
-  if (!isAuthenticated.value || !client.value) {
+  if (!isAuthenticated?.value || !client?.value) {
     return;
   }
 
@@ -297,7 +298,7 @@ const handleRefresh = () => {
 };
 
 const ensureActivePlaybackDevice = async (): Promise<string | null> => {
-  const spotifyClient = client.value;
+  const spotifyClient = client?.value;
 
   if (!spotifyClient) {
     return null;
@@ -343,7 +344,7 @@ const ensureActivePlaybackDevice = async (): Promise<string | null> => {
 };
 
 const handleSkip = async (direction: 'previous' | 'next') => {
-  if (!isAuthenticated.value || !client.value) {
+  if (!isAuthenticated?.value || !client?.value) {
     return;
   }
 
@@ -359,7 +360,7 @@ const handleSkip = async (direction: 'previous' | 'next') => {
     }
 
     const attemptSkip = async (device: string | null) => {
-      if (!client.value) {
+      if (!client?.value) {
         return;
       }
 
@@ -534,13 +535,13 @@ const skipNext = () => handleSkip('next');
 
             <div class="track-card__alerts">
               <VAlert
-                v-if="error.value"
+                v-if="error"
                 type="error"
                 variant="tonal"
                 border="start"
                 class="mb-3"
               >
-                {{ error.value.message }}
+                {{ error.message }}
               </VAlert>
 
               <VAlert
