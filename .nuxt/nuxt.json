@@ -1,7 +1,7 @@
 {
-  "_hash": "MqqQMOoaWM_GMmKZdv61MGKz8uBiMF-hCl3LWcHOoSk",
+  "_hash": "yL1H_oul59n92-GwRDfpWpiePlfTvpqQ9wJQAvzHbOQ",
   "project": {
-    "rootDir": "/Users/mad-tmng/lab/javascript/spotify-test"
+    "rootDir": "/Users/mad-tmng/lab/javascript/spotify-api-tester"
   },
   "versions": {
     "nuxt": "3.19.2"

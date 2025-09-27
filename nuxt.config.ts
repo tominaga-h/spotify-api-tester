@@ -31,6 +31,9 @@ export default defineNuxtConfig({
     ],
     define: {
       'process.env.DEBUG': false
+    },
+    server: {
+      allowedHosts: ['spotify-api-tester.vercel.app']
     }
   }
 });

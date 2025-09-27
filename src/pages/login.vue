@@ -39,26 +39,22 @@ watch(
 
 const isAuthenticating = computed(() => status.value === 'authenticating');
 const isError = computed(() => status.value === 'error');
+
+// Clean minimal authentication logic only
 </script>
 
 <template>
   <div class="login-page">
-    <div class="login-background">
-      <div class="login-background__gradient login-background__gradient--primary" />
-      <div class="login-background__gradient login-background__gradient--secondary" />
-    </div>
-    <VContainer class="fill-height" max-width="960">
-      <VRow class="fill-height" align="center" justify="center">
-        <VCol cols="12" md="8" lg="6">
-          <VCard class="login-card" elevation="16" rounded="xl">
-            <div class="login-card__header">
-              <VAvatar size="64" class="login-card__avatar" color="primary" variant="tonal">
-                <VIcon icon="mdi-spotify" size="38" />
-              </VAvatar>
-              <div>
-                <div class="text-subtitle-2 text-medium-emphasis">Spotify OAuth Nuxt Demo</div>
-                <div class="text-h4 font-weight-bold">Spotify 認証を開始します</div>
-              </div>
+    <div class="login-container">
+          <div class="login-card glass-card">
+            <div class="login-header">
+              <h1 class="login-title">
+                <span class="login-title__primary">Authentication</span>
+                <span class="login-title__secondary">Required</span>
+              </h1>
+              <p class="login-description">
+                Connect to Spotify to access your music data.
+              </p>
             </div>
 
             <VAlert
@@ -72,136 +68,229 @@ const isError = computed(() => status.value === 'error');
               <div v-if="error.value" class="text-body-2 mt-2">{{ error.value.message }}</div>
             </VAlert>
 
-            <div v-else class="login-card__status">
-              <VAvatar size="72" class="login-card__status-avatar" color="success" variant="tonal">
+            <div v-else class="login-status">
+              <div class="status-icon">
                 <VProgressCircular
                   v-if="isAuthenticating"
                   indeterminate
-                  color="primary"
-                  size="42"
-                  width="4"
+                  color="#5c7c9b"
+                  size="32"
+                  width="2"
                 />
-                <VIcon v-else icon="mdi-shield-lock" size="40" />
-              </VAvatar>
-              <div>
-                <div class="text-h5 mb-1">
-                  {{ isAuthenticating ? 'Spotify に接続しています…' : 'リダイレクトを準備しています' }}
-                </div>
-                <p class="text-body-2 text-medium-emphasis mb-0">
-                  自動的に遷移しない場合はブラウザのポップアップを許可するか、再度ボタンを押してください。
+                <VIcon v-else icon="mdi-lock" size="32" color="var(--base-600)" />
+              </div>
+              <div class="status-text">
+                <p class="status-message">
+                  {{ isAuthenticating ? 'Connecting...' : 'Ready to authenticate' }}
                 </p>
               </div>
             </div>
 
-            <div class="login-card__actions">
-              <VBtn
-                color="primary"
-                size="large"
-                block
-                :loading="isAuthenticating"
-                class="login-card__button"
+            <div class="login-actions">
+              <button
+                class="auth-btn"
+                :disabled="isAuthenticating"
                 @click="authenticate()"
               >
-                <VIcon start icon="mdi-open-in-new" />
-                Spotify でログイン
-              </VBtn>
-              <div class="text-caption text-medium-emphasis text-center">
-                認証には Spotify のアカウントが必要です。承認後、自動的に元の画面へ戻ります。
-              </div>
+                <span v-if="!isAuthenticating">Sign In</span>
+                <span v-else>Connecting...</span>
+              </button>
+              <p class="login-note">
+                Secure OAuth authentication required.
+              </p>
             </div>
-          </VCard>
-        </VCol>
-      </VRow>
-    </VContainer>
+          </div>
+    </div>
   </div>
 </template>
 
 <style lang="scss">
+// Minimal Login Page
 .login-page {
-  position: relative;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: var(--base-050);
 }
 
-.login-background {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 0;
+.login-container {
+  width: 100%;
+  max-width: 400px;
+  padding: var(--space-8);
 }
 
-.login-background__gradient {
-  position: absolute;
-  width: 420px;
-  height: 420px;
-  filter: blur(90px);
-  opacity: 0.8;
-}
-
-.login-background__gradient--primary {
-  top: -120px;
-  left: -80px;
-  background: radial-gradient(circle, rgba(29, 185, 84, 0.8), rgba(10, 26, 21, 0));
-}
-
-.login-background__gradient--secondary {
-  bottom: -100px;
-  right: -60px;
-  background: radial-gradient(circle, rgba(28, 215, 96, 0.6), rgba(16, 44, 35, 0));
-}
-
+// Clean Login Card
 .login-card {
+  background: var(--base-100);
+  border: var(--border-subtle);
+  border-radius: var(--radius-sharp);
+  box-shadow: var(--shadow-neumorphic-flat);
+  padding: var(--space-12);
+  transition: all var(--duration-normal) var(--ease-out);
+
+  &:hover {
+    box-shadow: var(--shadow-neumorphic-raised);
+  }
+}
+
+// Minimal Header
+.login-header {
+  margin-bottom: var(--space-10);
+  text-align: center;
+}
+
+.login-title {
+  font-size: var(--text-4xl);
+  font-family: var(--font-display);
+  line-height: 1;
+  margin-bottom: var(--space-4);
+  color: var(--base-900);
+}
+
+.login-title__primary {
+  display: block;
+  font-variation-settings: 'wght' 800;
+  background: var(--gradient-neon-2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: textGlow 3s ease-in-out infinite;
+}
+
+.login-title__secondary {
+  display: block;
+  font-variation-settings: 'wght' 200;
+  color: var(--base-600);
+  margin-top: var(--space-1);
+}
+
+.login-description {
+  font-size: var(--text-base);
+  color: var(--base-600);
+  font-variation-settings: 'wght' 400;
+  line-height: 1.5;
+  margin: 0;
+}
+
+// Status Section
+.login-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+  padding: var(--space-4);
+  background: var(--base-050);
+  border: var(--border-muted);
+  border-radius: var(--radius-sharp);
+}
+
+.status-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--base-100);
+  border-radius: var(--radius-sharp);
+  border: var(--border-subtle);
+}
+
+.status-text {
+  flex: 1;
+}
+
+.status-message {
+  font-size: var(--text-sm);
+  color: var(--base-700);
+  font-variation-settings: 'wght' 500;
+  margin: 0;
+}
+
+// Actions Section
+.login-actions {
+  margin-bottom: var(--space-6);
+}
+
+.auth-btn {
+  width: 100%;
+  padding: var(--space-4) var(--space-6);
+  background: var(--gradient-neon-3);
+  color: var(--base-white);
+  border: 2px solid var(--neon-orange);
+  border-radius: var(--radius-sharp);
+  font-family: var(--font-primary);
+  font-size: var(--text-base);
+  font-variation-settings: 'wght' 600;
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-out);
+  box-shadow: var(--shadow-neumorphic-flat), var(--glow-orange);
+  margin-bottom: var(--space-4);
   position: relative;
-  z-index: 1;
-  padding: 2.5rem;
-  background: rgba(14, 19, 29, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gradient-rainbow);
+    opacity: 0;
+    transition: opacity var(--duration-normal) var(--ease-out);
+  }
+
+  &:hover:not(:disabled) {
+    box-shadow: var(--shadow-neumorphic-pressed), var(--glow-purple);
+    border-color: var(--neon-purple);
+    animation: neonPulse 1.5s ease-in-out infinite;
+    transform: translateY(1px);
+
+    &::before {
+      opacity: 0.8;
+    }
+  }
+
+  &:active:not(:disabled) {
+    box-shadow: var(--shadow-neumorphic-pressed), var(--glow-electric);
+    transform: translateY(2px);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    filter: grayscale(1);
+  }
 }
 
-.login-card__header {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+.login-note {
+  font-size: var(--text-sm);
+  color: var(--base-500);
+  text-align: center;
+  line-height: 1.4;
+  margin: 0;
+  font-variation-settings: 'wght' 400;
 }
 
-.login-card__avatar {
-  box-shadow: 0 18px 35px rgba(29, 185, 84, 0.45);
+// Error Alert Override
+.v-alert {
+  background: var(--base-100) !important;
+  border: var(--border-subtle) !important;
+  border-radius: var(--radius-sharp) !important;
+  box-shadow: var(--shadow-neumorphic-flat) !important;
+  margin-bottom: var(--space-6) !important;
 }
 
-.login-card__status {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 1.5rem;
-  border-radius: 20px;
-  background: rgba(22, 28, 41, 0.8);
-  margin-bottom: 2rem;
-}
+// Responsive Design
+@media (max-width: 500px) {
+  .login-container {
+    padding: var(--space-6);
+  }
 
-.login-card__status-avatar {
-  box-shadow: 0 18px 36px rgba(29, 185, 84, 0.35);
-}
-
-.login-card__actions {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.login-card__button {
-  border-radius: 999px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-
-@media (max-width: 600px) {
   .login-card {
-    padding: 2rem;
+    padding: var(--space-8);
+  }
+
+  .login-title {
+    font-size: var(--text-3xl);
   }
 }
 </style>
