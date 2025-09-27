@@ -5,6 +5,8 @@ import { useSpotifyAuth } from '@/composables/useSpotifyAuth';
 
 interface ImageLike {
   url: string;
+  width?: number;
+  height?: number;
 }
 
 interface ArtistLike {
@@ -53,7 +55,15 @@ const albumImage = computed(() => {
     return null;
   }
 
-  return track.value.album.images[0]?.url ?? null;
+  // Spotify画像は通常サイズ順（大→小）で並んでいるため、適切なサイズを選択
+  const images = track.value.album.images;
+
+  // 300x300前後のサイズを優先、なければ最初の画像を使用
+  const preferredImage = images.find(img =>
+    img.width && img.height && img.width >= 250 && img.width <= 640
+  ) || images[0];
+
+  return preferredImage?.url ?? null;
 });
 
 const artistNames = computed(() => {
@@ -199,6 +209,11 @@ watch(
 
       deviceId.value = response?.device?.id ?? null;
       track.value = (response && 'item' in response ? (response.item as TrackLike) : null) ?? null;
+
+      // デバッグ情報：画像データの確認
+      if (track.value?.album?.images) {
+        console.log('Album images:', track.value.album.images);
+      }
 
       const context = response?.context;
 
@@ -419,7 +434,14 @@ const skipNext = () => handleSkip('next');
         <div class="track-hero__content">
           <div class="track-hero__art" :class="{ 'track-hero__art--empty': !albumImage }">
             <template v-if="albumImage">
-              <VImg :src="albumImage" alt="Album artwork" cover />
+              <VImg
+                :src="albumImage"
+                alt="Album artwork"
+                cover
+                :transition="false"
+                @load="console.log('Image loaded:', albumImage)"
+                @error="console.error('Image failed to load:', albumImage)"
+              />
             </template>
             <template v-else>
               <VIcon icon="mdi-music-box-outline" size="96" />
