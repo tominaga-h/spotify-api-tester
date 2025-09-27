@@ -704,6 +704,10 @@ const skipNext = () => handleSkip('next');
   background: rgba(29, 185, 84, 0.12);
 }
 
+.track-hero__art img {
+  width: 100%;
+}
+
 .track-hero__art--empty {
   border: 2px dashed rgba(255, 255, 255, 0.2);
 }
