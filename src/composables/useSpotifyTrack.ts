@@ -104,6 +104,7 @@ export function useSpotifyTrack() {
 
     try {
       await attemptAction(deviceId)
+      await fetchCurrentTrack()
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
 
@@ -113,6 +114,8 @@ export function useSpotifyTrack() {
       } else {
         throw err
       }
+
+      await fetchCurrentTrack()
     }
 
     // Refresh track info after control action
