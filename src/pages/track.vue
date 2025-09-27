@@ -1,166 +1,3 @@
-<template>
-  <VContainer class="py-8" max-width="960">
-    <VRow>
-      <VCol cols="12">
-        <VSheet class="pa-6 mb-6" elevation="4" rounded="xl">
-          <div class="d-flex align-center justify-space-between flex-wrap gap-4 mb-4">
-            <div>
-              <h1 class="text-h4 mb-1">Now Playing</h1>
-              <div class="text-body-2 text-medium-emphasis">Spotifyの再生状況を表示</div>
-            </div>
-            <VBtn variant="text" color="primary" prepend-icon="mdi-home" @click="goHome">
-              ホームへ戻る
-            </VBtn>
-          </div>
-
-          <VAlert
-            v-if="isAuthenticating"
-            type="info"
-            variant="tonal"
-            border="start"
-            class="mb-4"
-          >
-            Spotifyの認証完了を待機しています…
-          </VAlert>
-
-          <VAlert
-            v-if="error.value"
-            type="error"
-            variant="tonal"
-            border="start"
-            class="mb-4"
-          >
-            {{ error.value.message }}
-          </VAlert>
-
-          <VAlert
-            v-if="apiError"
-            type="warning"
-            variant="tonal"
-            border="start"
-            class="mb-4"
-          >
-            {{ apiError.message }}
-          </VAlert>
-
-          <div class="d-flex flex-wrap align-center gap-4 mb-6">
-            <VBtn
-              color="primary"
-              variant="elevated"
-              :disabled="!isAuthenticated || loading"
-              :loading="loading"
-              @click="handleRefresh"
-            >
-              リフレッシュ
-            </VBtn>
-            <div class="d-flex align-center gap-2">
-              <VBtn
-                color="secondary"
-                variant="tonal"
-                :disabled="!isAuthenticated || loading"
-                @click="() => handleSkip('previous')"
-              >
-                ⏮ 前の曲
-              </VBtn>
-              <VBtn
-                color="secondary"
-                variant="tonal"
-                :disabled="!isAuthenticated || loading"
-                @click="() => handleSkip('next')"
-              >
-                次の曲 ⏭
-              </VBtn>
-            </div>
-          </div>
-
-          <div v-if="loading" class="d-flex align-center gap-4 mb-4">
-            <VProgressCircular indeterminate color="primary" />
-            <span>トラック情報を取得しています…</span>
-          </div>
-
-          <div v-else-if="track">
-            <div class="d-flex flex-wrap align-center gap-4">
-              <VAvatar size="140" rounded="lg" v-if="albumImage">
-                <VImg :src="albumImage" alt="Album artwork" cover />
-              </VAvatar>
-              <div>
-                <div class="text-h5">{{ track.name ?? 'Unknown' }}</div>
-                <div class="text-body-2 text-medium-emphasis">
-                  {{ artistNames || 'Unknown artist' }}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div v-else class="text-medium-emphasis">
-            現在再生中のトラックはありません。
-          </div>
-        </VSheet>
-      </VCol>
-    </VRow>
-
-    <VRow>
-      <VCol cols="12">
-        <VSheet class="pa-6" elevation="2" rounded="xl">
-          <h2 class="text-h5 mb-4">再生中のプレイリスト</h2>
-
-          <VAlert
-            v-if="playlistError"
-            type="warning"
-            variant="tonal"
-            border="start"
-            class="mb-4"
-          >
-            {{ playlistError.message }}
-          </VAlert>
-
-          <div v-if="playlistLoading" class="d-flex align-center gap-4">
-            <VProgressCircular indeterminate color="primary" />
-            <span>プレイリストを読み込み中…</span>
-          </div>
-
-          <template v-else-if="playlist">
-            <p class="mb-4">
-              プレイリスト:
-              <template v-if="playlistLink">
-                <NuxtLink
-                  :to="playlistLink"
-                  external
-                  target="_blank"
-                  class="font-weight-medium"
-                >
-                  {{ playlist.name }}
-                </NuxtLink>
-              </template>
-              <template v-else>
-                {{ playlist.name }}
-              </template>
-            </p>
-            <VList class="rounded-lg" lines="two">
-              <VListItem
-                v-for="(item, index) in limitedPlaylistTracks"
-                :key="item.id || `playlist-${index}`"
-              >
-                <VListItemTitle class="font-weight-medium">{{ item.name }}</VListItemTitle>
-                <VListItemSubtitle v-if="item.artists.length">
-                  {{ item.artists.join(', ') }}
-                </VListItemSubtitle>
-              </VListItem>
-            </VList>
-            <p v-if="playlist.tracks.length > maxPlaylistTracks" class="text-body-2 text-medium-emphasis mt-4">
-              最初の {{ maxPlaylistTracks }} 曲を表示しています。完全なリストはSpotifyでご確認ください。
-            </p>
-          </template>
-
-          <div v-else class="text-medium-emphasis">
-            現在のトラックはプレイリスト由来ではありません。
-          </div>
-        </VSheet>
-      </VCol>
-    </VRow>
-  </VContainer>
-</template>
-
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 
@@ -481,3 +318,196 @@ const handleSkip = async (direction: 'previous' | 'next') => {
   }
 };
 </script>
+
+<template>
+  <VContainer class="py-8" max-width="960">
+    <VRow>
+      <VCol cols="12">
+        <VSheet class="pa-6 mb-6" elevation="4" rounded="xl">
+          <div class="d-flex align-center justify-space-between flex-wrap gap-4 mb-4">
+            <div>
+              <h1 class="text-h4 mb-1">Now Playing</h1>
+              <div class="text-body-2 text-medium-emphasis">Spotifyの再生状況を表示</div>
+            </div>
+            <VBtn variant="text" color="primary" prepend-icon="mdi-home" @click="goHome">
+              ホームへ戻る
+            </VBtn>
+          </div>
+
+          <VAlert
+            v-if="isAuthenticating"
+            type="info"
+            variant="tonal"
+            border="start"
+            class="mb-4"
+          >
+            Spotifyの認証完了を待機しています…
+          </VAlert>
+
+          <VAlert
+            v-if="error.value"
+            type="error"
+            variant="tonal"
+            border="start"
+            class="mb-4"
+          >
+            {{ error.value.message }}
+          </VAlert>
+
+          <VAlert
+            v-if="apiError"
+            type="warning"
+            variant="tonal"
+            border="start"
+            class="mb-4"
+          >
+            {{ apiError.message }}
+          </VAlert>
+
+          <div class="d-flex flex-wrap align-center gap-4 mb-6">
+            <VBtn
+              color="primary"
+              variant="elevated"
+              :disabled="!isAuthenticated || loading"
+              :loading="loading"
+              @click="handleRefresh"
+            >
+              リフレッシュ
+            </VBtn>
+            <div class="d-flex align-center gap-2">
+              <VBtn
+                color="secondary"
+                variant="tonal"
+                :disabled="!isAuthenticated || loading"
+                @click="() => handleSkip('previous')"
+              >
+                ⏮ 前の曲
+              </VBtn>
+              <VBtn
+                color="secondary"
+                variant="tonal"
+                :disabled="!isAuthenticated || loading"
+                @click="() => handleSkip('next')"
+              >
+                次の曲 ⏭
+              </VBtn>
+            </div>
+          </div>
+
+          <div v-if="loading" class="d-flex align-center gap-4 mb-4">
+            <VProgressCircular indeterminate color="primary" />
+            <span>トラック情報を取得しています…</span>
+          </div>
+
+          <div v-else-if="track">
+            <div class="d-flex flex-wrap align-center gap-4">
+              <VAvatar size="140" rounded="lg" v-if="albumImage">
+                <VImg :src="albumImage" alt="Album artwork" cover />
+              </VAvatar>
+              <div>
+                <div class="text-h5">{{ track.name ?? 'Unknown' }}</div>
+                <div class="text-body-2 text-medium-emphasis">
+                  {{ artistNames || 'Unknown artist' }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="text-medium-emphasis">
+            現在再生中のトラックはありません。
+          </div>
+        </VSheet>
+      </VCol>
+    </VRow>
+
+    <VRow>
+      <VCol cols="12">
+        <VSheet class="pa-6" elevation="2" rounded="xl">
+          <h2 class="text-h5 mb-4">再生中のプレイリスト</h2>
+
+          <VAlert
+            v-if="playlistError"
+            type="warning"
+            variant="tonal"
+            border="start"
+            class="mb-4"
+          >
+            {{ playlistError.message }}
+          </VAlert>
+
+          <div v-if="playlistLoading" class="d-flex align-center gap-4">
+            <VProgressCircular indeterminate color="primary" />
+            <span>プレイリストを読み込み中…</span>
+          </div>
+
+          <template v-else-if="playlist">
+            <p class="mb-4">
+              プレイリスト:
+              <template v-if="playlistLink">
+                <NuxtLink
+                  :to="playlistLink"
+                  external
+                  target="_blank"
+                  class="font-weight-medium"
+                >
+                  {{ playlist.name }}
+                </NuxtLink>
+              </template>
+              <template v-else>
+                {{ playlist.name }}
+              </template>
+            </p>
+            <VList class="rounded-lg" lines="two">
+              <VListItem
+                v-for="(item, index) in limitedPlaylistTracks"
+                :key="item.id || `playlist-${index}`"
+              >
+                <VListItemTitle class="font-weight-medium">{{ item.name }}</VListItemTitle>
+                <VListItemSubtitle v-if="item.artists.length">
+                  {{ item.artists.join(', ') }}
+                </VListItemSubtitle>
+              </VListItem>
+            </VList>
+            <p v-if="playlist.tracks.length > maxPlaylistTracks" class="text-body-2 text-medium-emphasis mt-4">
+              最初の {{ maxPlaylistTracks }} 曲を表示しています。完全なリストはSpotifyでご確認ください。
+            </p>
+          </template>
+
+          <div v-else class="text-medium-emphasis">
+            現在のトラックはプレイリスト由来ではありません。
+          </div>
+        </VSheet>
+      </VCol>
+    </VRow>
+  </VContainer>
+</template>
+
+<style lang="scss">
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at top, #1a1f2a 0%, #0f1118 40%, #08090d 100%);
+  color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.app-main {
+  min-height: 100vh;
+}
+
+.app-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.config-error {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+code {
+  font-family: 'Fira Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+}
+</style>

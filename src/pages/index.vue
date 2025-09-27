@@ -1,3 +1,72 @@
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue';
+
+import { useSpotifyAuth } from '@/composables/useSpotifyAuth';
+
+interface SpotifyProfile {
+  display_name: string;
+  email: string;
+  id: string;
+  images?: { url: string }[];
+}
+
+const router = useRouter();
+const { config, status, error, client, logOut } = useSpotifyAuth();
+
+const profile = ref<SpotifyProfile | null>(null);
+const loadingProfile = ref(false);
+
+watch(
+  () => client?.value,
+  async (spotifyClient) => {
+    if (!spotifyClient) {
+      profile.value = null;
+      loadingProfile.value = false;
+      return;
+    }
+
+    loadingProfile.value = true;
+    try {
+      const profileResponse = await spotifyClient.currentUser.profile();
+      profile.value = profileResponse as SpotifyProfile;
+    } catch (err) {
+      console.error(err);
+      profile.value = null;
+    } finally {
+      loadingProfile.value = false;
+    }
+  },
+  { immediate: true }
+);
+
+const statusLabel = computed(() => {
+  switch (status?.value) {
+    case 'authenticated':
+      return 'Authenticated';
+    case 'authenticating':
+      return 'Spotifyへリダイレクト中…';
+    case 'error':
+      return '認証に失敗しました';
+    default:
+      return '未認証です';
+  }
+});
+
+const handleNavigateToLogin = async () => {
+  if (status?.value === 'authenticated') {
+    logOut();
+    await router.push({ path: '/login', query: { reauthenticate: '1' } });
+    return;
+  }
+
+  await router.push('/login');
+};
+
+const navigateToTrack = () => {
+  router.push('/track');
+};
+</script>
+
 <template>
   <VContainer class="py-8" max-width="960">
     <VRow>
@@ -14,7 +83,7 @@
                 size="large"
                 @click="handleNavigateToLogin"
               >
-                {{ status.value === 'authenticated' ? '再認証' : 'Spotifyでログイン' }}
+                {{ status?.value === 'authenticated' ? '再認証' : 'Spotifyでログイン' }}
               </VBtn>
             </div>
           </header>
@@ -51,21 +120,21 @@
           <h2 class="text-h5 mb-4">認証状態</h2>
           <p class="text-body-1 mb-4">{{ statusLabel }}</p>
           <VAlert
-            v-if="error.value"
+            v-if="error?.value"
             type="error"
             variant="tonal"
             border="start"
             class="mb-4"
           >
-            {{ error.value.message }}
+            {{ error?.value?.message }}
           </VAlert>
           <VBtn
             color="secondary"
             variant="tonal"
-            :loading="status.value === 'authenticating'"
+            :loading="status?.value === 'authenticating'"
             @click="handleNavigateToLogin"
           >
-            {{ status.value === 'authenticated' ? '再認証' : 'Spotifyでログイン' }}
+            {{ status?.value === 'authenticated' ? '再認証' : 'Spotifyでログイン' }}
           </VBtn>
         </VSheet>
       </VCol>
@@ -110,71 +179,32 @@
   </VContainer>
 </template>
 
-<script setup lang="ts">
-import { computed, ref, watch } from 'vue';
-
-import { useSpotifyAuth } from '@/composables/useSpotifyAuth';
-
-interface SpotifyProfile {
-  display_name: string;
-  email: string;
-  id: string;
-  images?: { url: string }[];
+<style lang="scss">
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at top, #1a1f2a 0%, #0f1118 40%, #08090d 100%);
+  color: #f5f5f5;
+  min-height: 100vh;
 }
 
-const router = useRouter();
-const { config, status, error, client, logOut } = useSpotifyAuth();
+.app-main {
+  min-height: 100vh;
+}
 
-const profile = ref<SpotifyProfile | null>(null);
-const loadingProfile = ref(false);
+.app-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 
-watch(
-  () => client.value,
-  async (spotifyClient) => {
-    if (!spotifyClient) {
-      profile.value = null;
-      loadingProfile.value = false;
-      return;
-    }
+.config-error {
+  max-width: 640px;
+  margin: 0 auto;
+}
 
-    loadingProfile.value = true;
-    try {
-      const profileResponse = await spotifyClient.currentUser.profile();
-      profile.value = profileResponse as SpotifyProfile;
-    } catch (err) {
-      console.error(err);
-      profile.value = null;
-    } finally {
-      loadingProfile.value = false;
-    }
-  },
-  { immediate: true }
-);
-
-const statusLabel = computed(() => {
-  switch (status.value) {
-    case 'authenticated':
-      return 'Authenticated';
-    case 'authenticating':
-      return 'Spotifyへリダイレクト中…';
-    case 'error':
-      return '認証に失敗しました';
-    default:
-      return '未認証です';
-  }
-});
-
-const handleNavigateToLogin = async () => {
-  if (status.value === 'authenticated') {
-    logOut();
-    await router.push({ path: '/login', query: { reauthenticate: '1' } });
-    return;
-  }
-
-  await router.push('/login');
-};
-
-const navigateToTrack = () => {
-  router.push('/track');
-};
-</script>
+code {
+  font-family: 'Fira Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+}
+</style>

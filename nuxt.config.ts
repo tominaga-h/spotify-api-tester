@@ -7,17 +7,16 @@ export default defineNuxtConfig({
   devtools: { enabled: false },
   css: [
     'vuetify/styles',
-    '@mdi/font/css/materialdesignicons.min.css',
-    '@/assets/styles/main.scss'
+    '@mdi/font/css/materialdesignicons.min.css'
   ],
   build: {
     transpile: ['vuetify']
   },
   runtimeConfig: {
     public: {
-      spotifyClientId: process.env.NUXT_PUBLIC_SPOTIFY_CLIENT_ID || '',
-      spotifyRedirectUri: process.env.NUXT_PUBLIC_SPOTIFY_REDIRECT_URI || '',
-      spotifyScopes: process.env.NUXT_PUBLIC_SPOTIFY_SCOPES || ''
+      spotifyClientId: process.env.SPOTIFY_CLIENT_ID || '',
+      spotifyRedirectUri: process.env.SPOTIFY_REDIRECT_URI || '',
+      spotifyScopes: process.env.SPOTIFY_SCOPES || ''
     }
   },
   vite: {

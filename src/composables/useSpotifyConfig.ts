@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 
-import { SpotifyClientConfig } from '@/utils/spotify';
+import type { SpotifyClientConfig } from '@/utils/spotify';
 
 interface SpotifyEnvironmentConfig extends SpotifyClientConfig {}
 
@@ -33,7 +33,7 @@ export function useSpotifyConfig() {
       const clientId = runtimeConfig.public.spotifyClientId ?? '';
       const redirectUri =
         runtimeConfig.public.spotifyRedirectUri ||
-        `${window.location.origin.replace(/\/$/u, '')}/callback`;
+        (process.client ? `${window.location.origin.replace(/\/$/u, '')}/callback` : 'http://localhost:3000/callback');
       const scopes = parseScopes(runtimeConfig.public.spotifyScopes);
 
       if (!clientId) {
