@@ -210,10 +210,6 @@ watch(
       deviceId.value = response?.device?.id ?? null;
       track.value = (response && 'item' in response ? (response.item as TrackLike) : null) ?? null;
 
-      // デバッグ情報：画像データの確認
-      if (track.value?.album?.images) {
-        console.log('Album images:', track.value.album.images);
-      }
 
       const context = response?.context;
 
@@ -439,8 +435,6 @@ const skipNext = () => handleSkip('next');
                 alt="Album artwork"
                 cover
                 :transition="false"
-                @load="console.log('Image loaded:', albumImage)"
-                @error="console.error('Image failed to load:', albumImage)"
               />
             </template>
             <template v-else>
@@ -457,7 +451,7 @@ const skipNext = () => handleSkip('next');
                 {{ deviceStatus.text }}
               </VChip>
               <VChip
-                v-if="playlist.value"
+                v-if="playlist"
                 color="secondary"
                 variant="tonal"
                 prepend-icon="mdi-playlist-music"
@@ -568,7 +562,7 @@ const skipNext = () => handleSkip('next');
               <div>
                 <div class="text-subtitle-2 text-medium-emphasis">Current Playlist Context</div>
                 <div class="text-h5 font-weight-bold">
-                  {{ playlist.value ? playlist.value.name : 'プレイリスト情報はありません' }}
+                  {{ playlist ? playlist.name : 'プレイリスト情報はありません' }}
                 </div>
               </div>
               <VBtn
@@ -590,7 +584,7 @@ const skipNext = () => handleSkip('next');
             </div>
 
             <template v-else>
-              <div v-if="playlist.value" class="playlist-card__timeline">
+              <div v-if="playlist" class="playlist-card__timeline">
                 <VTimeline density="comfortable" align="start">
                   <VTimelineItem
                     v-for="(item, index) in limitedPlaylistTracks"
