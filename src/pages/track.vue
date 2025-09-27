@@ -2,6 +2,8 @@
 import { computed, ref, watch } from 'vue';
 
 import { useSpotifyAuth } from '@/composables/useSpotifyAuth';
+import TrackDetail from '@/components/TrackDetail.vue';
+import PlaylistCard from '@/components/PlaylistCard.vue';
 
 interface ImageLike {
   url: string;
@@ -58,8 +60,6 @@ const albumImage = computed(() => {
 
   // Spotify画像は通常サイズ順（大→小）で並んでいるため、適切なサイズを選択
   const images = track.value.album.images;
-  console.log(images);
-  console.log(images[0].url);
   return images[0].url;
 
   // 300x300前後のサイズを優先、なければ最初の画像を使用
@@ -503,130 +503,24 @@ const skipNext = () => handleSkip('next');
     <VContainer class="track-content py-10" max-width="1200">
       <VRow align="stretch" class="g-6">
         <VCol cols="12" md="6">
-          <VCard class="track-card" elevation="12" rounded="xl">
-            <div class="track-card__header">
-              <div>
-                <div class="text-subtitle-2 text-medium-emphasis text-white">Playback Snapshot</div>
-                <div class="text-h5 font-weight-bold text-white">再生情報の概要</div>
-              </div>
-            </div>
-
-            <div class="track-details-grid">
-              <div
-                v-for="item in trackDetails"
-                :key="item.label"
-                class="track-detail-card"
-              >
-                <div class="track-detail-card__icon">
-                  <VIcon :icon="item.icon" size="24" />
-                </div>
-                <div class="track-detail-card__content">
-                  <div class="track-detail-card__label">{{ item.label }}</div>
-                  <div class="track-detail-card__value">{{ item.value }}</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="track-card__alerts">
-              <VAlert
-                v-if="error"
-                type="error"
-                variant="tonal"
-                border="start"
-                class="mb-3"
-              >
-                {{ error.message }}
-              </VAlert>
-
-              <VAlert
-                v-if="apiError"
-                type="warning"
-                variant="tonal"
-                border="start"
-                class="mb-3"
-              >
-                {{ apiError.message }}
-              </VAlert>
-            </div>
-          </VCard>
+          <TrackDetail
+            :track-name="track?.name"
+            :artist-name="artistNames || undefined"
+            :playlist-name="playlist?.name"
+            :device-text="deviceStatus.text"
+            :device-icon="deviceStatus.icon"
+            :auth-error="error"
+            :api-error="apiError"
+          />
         </VCol>
 
         <VCol cols="12" md="6">
-          <VCard class="playlist-card" elevation="12" rounded="xl">
-            <div class="playlist-card__header">
-              <div>
-                <div class="text-subtitle-2 text-medium-emphasis text-white">Current Playlist Context</div>
-                <div class="text-h5 font-weight-bold text-white">
-                  {{ playlist ? playlist.name : 'プレイリスト情報はありません' }}
-                </div>
-              </div>
-              <VBtn
-                v-if="playlistLink"
-                variant="text"
-                color="primary"
-                prepend-icon="mdi-open-in-new"
-                :href="playlistLink"
-                target="_blank"
-                rel="noopener"
-              >
-                Spotify で開く
-              </VBtn>
-            </div>
-
-            <div v-if="playlistLoading" class="playlist-card__loading">
-              <VProgressCircular indeterminate color="primary" class="mr-4" />
-              <span>プレイリストを読み込み中です…</span>
-            </div>
-
-            <template v-else>
-              <div v-if="playlist" class="playlist-tracks">
-                <div
-                  v-for="(item, index) in limitedPlaylistTracks"
-                  :key="item.id || `playlist-${index}`"
-                  class="playlist-track-item"
-                >
-                  <div class="playlist-track-item__number">
-                    {{ index + 1 }}
-                  </div>
-                  <div class="playlist-track-item__content">
-                    <div class="playlist-track-item__name">
-                      {{ item.name }}
-                    </div>
-                    <div class="playlist-track-item__artist">
-                      {{ item.artists.length ? item.artists.join(', ') : 'アーティスト情報なし' }}
-                    </div>
-                  </div>
-                  <div class="playlist-track-item__icon">
-                    <VIcon icon="mdi-music-note" size="18" />
-                  </div>
-                </div>
-
-                <VAlert
-                  v-if="showPlaylistLimitNotice"
-                  type="info"
-                  variant="tonal"
-                  border="start"
-                  class="mt-4"
-                >
-                  最初の {{ maxPlaylistTracks }} 曲を表示しています。完全なリストは Spotify で確認してください。
-                </VAlert>
-              </div>
-
-              <div v-else class="playlist-card__empty text-medium-emphasis">
-                現在のトラックはプレイリストに紐付いていません。
-              </div>
-
-              <VAlert
-                v-if="playlistError"
-                type="warning"
-                variant="tonal"
-                border="start"
-                class="mt-4"
-              >
-                {{ playlistError.message }}
-              </VAlert>
-            </template>
-          </VCard>
+          <PlaylistCard
+            :playlist="playlist"
+            :loading="playlistLoading"
+            :error="playlistError"
+            :max-tracks="maxPlaylistTracks"
+          />
         </VCol>
       </VRow>
     </VContainer>

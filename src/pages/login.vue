@@ -2,6 +2,8 @@
 import { computed, ref, watch } from 'vue';
 
 import { useSpotifyAuth } from '@/composables/useSpotifyAuth';
+import AlertCard from '@/components/AlertCard.vue';
+import ActionButton from '@/components/ActionButton.vue';
 
 const router = useRouter();
 const { status, error, authenticate } = useSpotifyAuth();
@@ -57,16 +59,12 @@ const isError = computed(() => status.value === 'error');
               </p>
             </div>
 
-            <VAlert
+            <AlertCard
               v-if="isError"
               type="error"
-              variant="tonal"
-              border="start"
-              class="mb-6"
-            >
-              認証に失敗しました。環境設定を見直し、もう一度お試しください。
-              <div v-if="error.value" class="text-body-2 mt-2">{{ error.value.message }}</div>
-            </VAlert>
+              message="認証に失敗しました。環境設定を見直し、もう一度お試しください。"
+              :details="error.value?.message"
+            />
 
             <div v-else class="login-status">
               <div class="status-icon">
@@ -87,14 +85,14 @@ const isError = computed(() => status.value === 'error');
             </div>
 
             <div class="login-actions">
-              <button
-                class="auth-btn"
+              <ActionButton
+                variant="primary"
                 :disabled="isAuthenticating"
                 @click="authenticate()"
+                class="auth-btn"
               >
-                <span v-if="!isAuthenticating">Sign In</span>
-                <span v-else>Connecting...</span>
-              </button>
+                {{ isAuthenticating ? 'Connecting...' : 'Sign In' }}
+              </ActionButton>
               <p class="login-note">
                 Secure OAuth authentication required.
               </p>

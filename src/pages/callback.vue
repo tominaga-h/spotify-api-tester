@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue';
 
 import { useSpotifyAuth } from '@/composables/useSpotifyAuth';
+import AlertCard from '@/components/AlertCard.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -68,16 +69,12 @@ const isError = computed(() => status.value === 'error');
               </div>
             </div>
 
-            <VAlert
+            <AlertCard
               v-if="isError"
               type="error"
-              variant="tonal"
-              border="start"
-              class="mb-6"
-            >
-              認証の完了に失敗しました。もう一度サインインするか、Spotify 設定をご確認ください。
-              <div v-if="error.value" class="text-body-2 mt-2">{{ error.value.message }}</div>
-            </VAlert>
+              message="認証の完了に失敗しました。もう一度サインインするか、Spotify 設定をご確認ください。"
+              :details="error.value?.message"
+            />
 
             <div v-else class="callback-card__status">
               <VAvatar size="72" class="callback-card__status-avatar" color="primary" variant="tonal">

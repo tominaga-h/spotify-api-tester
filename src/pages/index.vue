@@ -2,7 +2,9 @@
 import { computed, ref, watch } from 'vue';
 
 import { useSpotifyAuth } from '@/composables/useSpotifyAuth';
-import { useParticleAnimations, useAnimationDelays, useHoverEffects } from '@/composables/useAnimations';
+import StatusIndicator from '@/components/StatusIndicator.vue';
+import ProfileCard from '@/components/ProfileCard.vue';
+import ActionButton from '@/components/ActionButton.vue';
 
 interface SpotifyProfile {
   display_name: string;
@@ -46,48 +48,6 @@ watch(
 
 const isAuthenticated = computed(() => status?.value === 'authenticated');
 
-const statusMeta = computed(() => {
-  switch (status?.value) {
-    case 'authenticated':
-      return {
-        label: 'Authenticated',
-        chip: 'success',
-        icon: 'mdi-check-circle',
-        description:
-          'Spotify Web API に接続されています。音楽データの取得や再生コントロールが利用できます。',
-      } as const;
-    case 'authenticating':
-      return {
-        label: 'Spotifyへリダイレクト中…',
-        chip: 'info',
-        icon: 'mdi-timer-sand',
-        description:
-          'Spotify 認証フローにリダイレクトしています。ブラウザのポップアップをご確認ください。',
-      } as const;
-    case 'error':
-      return {
-        label: '認証に失敗しました',
-        chip: 'error',
-        icon: 'mdi-alert-circle',
-        description:
-          '認証が完了しませんでした。クライアント設定をご確認のうえ再試行してください。',
-      } as const;
-    default:
-      return {
-        label: '未認証です',
-        chip: 'warning',
-        icon: 'mdi-lock-alert',
-        description: 'まだ Spotify にサインインしていません。下のボタンからログインしてください。',
-      } as const;
-  }
-});
-
-const statusLabel = computed(() => statusMeta.value?.label ?? '未認証です');
-
-const availableScopes = computed(() => config?.value?.scopes ?? []);
-
-const profileImage = computed(() => profile.value?.images?.[0]?.url ?? null);
-
 const handleNavigateToLogin = async () => {
   if (status?.value === 'authenticated') {
     logOut();
@@ -111,10 +71,7 @@ const navigateToTrack = () => {
 
       <div class="hero-content">
         <div class="hero-main">
-          <div class="status-indicator" :class="`status-indicator--${statusMeta?.chip}`">
-            <div class="status-indicator__dot"></div>
-            <span class="status-indicator__text">{{ statusLabel }}</span>
-          </div>
+          <StatusIndicator :status="status" />
 
           <h1 class="hero-title">
             <span class="hero-title__primary">Music</span>
@@ -126,34 +83,17 @@ const navigateToTrack = () => {
           </p>
 
           <div class="hero-actions">
-            <button class="action-btn action-btn--primary" @click="navigateToTrack">
-              <span class="action-btn__text">Now Playing</span>
-            </button>
-            <button class="action-btn action-btn--secondary" @click="handleNavigateToLogin">
-              <span class="action-btn__text">{{ isAuthenticated ? 'Re-authenticate' : 'Sign In' }}</span>
-            </button>
+            <ActionButton variant="primary" @click="navigateToTrack">
+              Now Playing
+            </ActionButton>
+            <ActionButton variant="secondary" @click="handleNavigateToLogin">
+              {{ isAuthenticated ? 'Re-authenticate' : 'Sign In' }}
+            </ActionButton>
           </div>
         </div>
 
         <div class="hero-visual">
-          <div class="profile-section" v-if="isAuthenticated && profile">
-            <div class="profile-avatar">
-              <img v-if="profileImage" :src="profileImage" alt="Profile" class="profile-avatar__image" />
-              <div v-else class="profile-avatar__placeholder">
-                <VIcon icon="mdi-account" size="32" />
-              </div>
-            </div>
-            <div class="profile-info">
-              <h3 class="profile-name">{{ profile.display_name }}</h3>
-              <p class="profile-status">Connected</p>
-            </div>
-          </div>
-          <div v-else class="connection-placeholder">
-            <div class="connection-placeholder__icon">
-              <VIcon icon="mdi-music" size="48" />
-            </div>
-            <p class="connection-placeholder__text">Connect to Spotify</p>
-          </div>
+          <ProfileCard :profile="isAuthenticated ? profile : null" />
         </div>
       </div>
     </div>
