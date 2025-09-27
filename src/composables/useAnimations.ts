@@ -141,8 +141,8 @@ export function useScrollAnimations() {
     updateScrollPosition();
 
     // スクロール終了を検出
-    clearTimeout(window.scrollTimeout);
-    window.scrollTimeout = setTimeout(() => {
+    clearTimeout((window as any).scrollTimeout);
+    (window as any).scrollTimeout = setTimeout(() => {
       isScrolling.value = false;
     }, 150);
   };

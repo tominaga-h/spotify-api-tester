@@ -1,50 +1,15 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed } from 'vue';
 
 import { useSpotifyAuth } from '@/composables/useSpotifyAuth';
+import { useSpotifyUser } from '@/composables/useSpotifyUser';
 import StatusIndicator from '@/components/StatusIndicator.vue';
 import ProfileCard from '@/components/ProfileCard.vue';
 import ActionButton from '@/components/ActionButton.vue';
 
-interface SpotifyProfile {
-  display_name: string;
-  email: string;
-  id: string;
-  images?: { url: string }[];
-}
-
 const router = useRouter();
-const { config, status, error, client, logOut } = useSpotifyAuth();
-
-// Clean minimal composables only
-
-// Clean minimal interface only
-
-const profile = ref<SpotifyProfile | null>(null);
-const loadingProfile = ref(false);
-
-watch(
-  () => client?.value,
-  async (spotifyClient) => {
-    if (!spotifyClient) {
-      profile.value = null;
-      loadingProfile.value = false;
-      return;
-    }
-
-    loadingProfile.value = true;
-    try {
-      const profileResponse = await spotifyClient.currentUser.profile();
-      profile.value = profileResponse as SpotifyProfile;
-    } catch (err) {
-      console.error(err);
-      profile.value = null;
-    } finally {
-      loadingProfile.value = false;
-    }
-  },
-  { immediate: true }
-);
+const { status, logOut } = useSpotifyAuth();
+const { profile } = useSpotifyUser();
 
 const isAuthenticated = computed(() => status?.value === 'authenticated');
 

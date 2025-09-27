@@ -1,128 +1,59 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, watch } from 'vue';
 
 import { useSpotifyAuth } from '@/composables/useSpotifyAuth';
+import { useSpotifyTrack } from '@/composables/useSpotifyTrack';
+import { useSpotifyPlaylist } from '@/composables/useSpotifyPlaylist';
 import TrackDetail from '@/components/TrackDetail.vue';
 import PlaylistCard from '@/components/PlaylistCard.vue';
 
-interface ImageLike {
-  url: string;
-  width?: number;
-  height?: number;
-}
-
-interface ArtistLike {
-  name: string;
-}
-
-interface TrackLike {
-  id?: string;
-  uri?: string;
-  name?: string;
-  album?: {
-    images?: ImageLike[];
-  };
-  artists?: ArtistLike[];
-}
-
-interface PlaylistSummary {
-  id: string;
-  name: string;
-  tracks: Array<{
-    id: string;
-    name: string;
-    artists: string[];
-  }>;
-}
-
-const maxPlaylistTracks = 25;
-
 const router = useRouter();
-const spotifyAuth = useSpotifyAuth();
-const { status, client, error } = spotifyAuth;
+const { status, error } = useSpotifyAuth();
 
-const loading = ref(false);
-const apiError = ref<Error | null>(null);
-const track = ref<TrackLike | null>(null);
-const deviceId = ref<string | null>(null);
-const playlist = ref<PlaylistSummary | null>(null);
-const playlistLoading = ref(false);
-const playlistError = ref<Error | null>(null);
-const refreshTick = ref(0);
+const {
+  track,
+  device,
+  context,
+  albumImage,
+  artistNames,
+  trackTitle,
+  trackSubtitle,
+  deviceStatus,
+  loading,
+  error: apiError,
+  controlLoading,
+  controlError,
+  refresh: refreshTrack,
+  skipNext,
+  skipPrevious
+} = useSpotifyTrack();
+
+const contextUri = computed(() => context.value?.uri)
+
+const {
+  playlist,
+  playlistLink,
+  playlistSummary,
+  limitedTracks,
+  showLimitNotice,
+  maxTracksDisplayed,
+  loading: playlistLoading,
+  error: playlistError
+} = useSpotifyPlaylist(contextUri);
 
 const isAuthenticating = computed(() => status?.value === 'authenticating');
-const isAuthenticated = computed(() => status?.value === 'authenticated' && !!client?.value);
+const isAuthenticated = computed(() => status?.value === 'authenticated');
 
-const albumImage = computed(() => {
-  if (!track.value?.album?.images?.length) {
-    return null;
-  }
-
-  // Spotify画像は通常サイズ順（大→小）で並んでいるため、適切なサイズを選択
-  const images = track.value.album.images;
-  return images[0].url;
-
-  // 300x300前後のサイズを優先、なければ最初の画像を使用
-  // const preferredImage = images.find(img =>
-  //   img.width && img.height && img.width >= 250 && img.width <= 640
-  // ) || images[0];
-
-  // return preferredImage?.url ?? null;
-});
-
-const artistNames = computed(() => {
-  if (!track.value?.artists?.length) {
-    return '';
-  }
-
-  return track.value.artists.map((artist) => artist.name).join(', ');
-});
-
-const playlistLink = computed(() => {
-  if (!playlist.value) {
-    return null;
-  }
-
-  return `https://open.spotify.com/playlist/${playlist.value.id}`;
-});
-
-const playlistTracks = computed(() => playlist.value?.tracks ?? []);
-
-const limitedPlaylistTracks = computed(() => playlistTracks.value.slice(0, maxPlaylistTracks));
-
-const heroBackdropStyle = computed(() => {
-  if (!albumImage.value) {
-    return {} as Record<string, string>;
-  }
-
-  return {
-    backgroundImage: `url(${albumImage.value})`,
-  } as Record<string, string>;
-});
-
-const trackTitle = computed(() => track.value?.name ?? '現在再生中のトラックはありません');
-
-const trackSubtitle = computed(() =>
-  track.value
-    ? artistNames.value || 'アーティスト情報が取得できませんでした'
-    : 'Spotify を再生して現在のトラックをここに表示しましょう。'
+// Watch for status changes and redirect if needed
+watch(
+  () => status?.value,
+  (currentStatus) => {
+    if (currentStatus === 'idle' || currentStatus === 'error') {
+      router.replace('/login');
+    }
+  },
+  { immediate: true }
 );
-
-const deviceStatus = computed(() => {
-  if (deviceId.value) {
-    return {
-      icon: 'mdi-speaker-wave',
-      text: `再生デバイス ID: ${deviceId.value}`,
-      tone: 'success',
-    } as const;
-  }
-
-  return {
-    icon: 'mdi-speaker-off',
-    text: 'アクティブな Spotify デバイスが検出されません',
-    tone: 'warning',
-  } as const;
-});
 
 const statusChipColor = computed(() => {
   if (isAuthenticating?.value) {
@@ -136,284 +67,29 @@ const statusChipColor = computed(() => {
   return 'warning';
 });
 
-const trackDetails = computed(() => [
-  {
-    label: 'トラック名',
-    value: track.value?.name ?? '---',
-    icon: 'mdi-music-note',
-  },
-  {
-    label: 'アーティスト',
-    value: artistNames.value || '---',
-    icon: 'mdi-account-music',
-  },
-  {
-    label: 'プレイリスト',
-    value: playlist.value?.name ?? '---',
-    icon: 'mdi-playlist-music',
-  },
-  {
-    label: 'デバイス',
-    value: deviceStatus.value.text,
-    icon: deviceStatus.value.icon,
-  },
-]);
-
-const playlistSummary = computed(() => {
-  if (!playlist.value) {
-    return 'プレイリスト情報はありません';
+const heroBackdropStyle = computed(() => {
+  if (!albumImage.value) {
+    return {} as Record<string, string>;
   }
 
-  return `${playlistTracks.value.length} 曲のプレイリスト`;
+  return {
+    backgroundImage: `url(${albumImage.value})`,
+  } as Record<string, string>;
 });
 
-const showPlaylistLimitNotice = computed(
-  () => !!playlist.value && playlistTracks.value.length > maxPlaylistTracks
-);
-
-const playbackButtonDisabled = computed(() => !isAuthenticated?.value || loading.value);
-
-watch(
-  () => status?.value,
-  (currentStatus) => {
-    if (currentStatus === 'idle' || currentStatus === 'error') {
-      router.replace('/login');
-    }
-  },
-  { immediate: true }
-);
-
-let fetchToken = 0;
-
-const loadTrackData = async () => {
-  const spotifyClient = client?.value;
-  const authenticated = isAuthenticated?.value;
-
-  if (!spotifyClient || !authenticated) {
-    track.value = null;
-    deviceId.value = null;
-    playlist.value = null;
-    playlistLoading.value = false;
-    loading.value = false;
-    return;
-  }
-
-  const token = ++fetchToken;
-  loading.value = true;
-  apiError.value = null;
-  playlistError.value = null;
-  playlist.value = null;
-  playlistLoading.value = false;
-
-  try {
-    const response = await spotifyClient.player.getCurrentlyPlayingTrack();
-
-    if (token !== fetchToken) {
-      return;
-    }
-
-    deviceId.value = response?.device?.id ?? null;
-    track.value = (response && 'item' in response ? (response.item as TrackLike) : null) ?? null;
-
-
-    const context = response?.context;
-
-    if (context?.type === 'playlist' && typeof context.uri === 'string') {
-      const playlistId = context.uri.split(':').pop() ?? '';
-
-      if (playlistId) {
-        playlistLoading.value = true;
-
-        try {
-          const playlistResponse = await spotifyClient.playlists.getPlaylist(playlistId);
-
-          if (token !== fetchToken) {
-            return;
-          }
-
-          const items = playlistResponse.tracks?.items ?? [];
-
-          const tracks = items
-            .map((item, index) => {
-              const playlistTrack = item?.track as TrackLike | null;
-              if (!playlistTrack) {
-                return null;
-              }
-
-              const trackId = playlistTrack.id ?? playlistTrack.uri ?? `playlist-track-${index}`;
-
-              return {
-                id: trackId,
-                name: playlistTrack.name ?? 'Unknown',
-                artists:
-                  playlistTrack.artists?.map((artist) => artist.name).filter(Boolean) ?? [],
-              };
-            })
-            .filter((item): item is PlaylistSummary['tracks'][number] => Boolean(item));
-
-          playlist.value = {
-            id: playlistResponse.id,
-            name: playlistResponse.name,
-            tracks,
-          };
-          playlistError.value = null;
-        } catch (err) {
-          if (token !== fetchToken) {
-            return;
-          }
-
-          playlistError.value = err instanceof Error ? err : new Error(String(err));
-          playlist.value = null;
-        } finally {
-          if (token === fetchToken) {
-            playlistLoading.value = false;
-          }
-        }
-      }
-    }
-  } catch (err) {
-    if (token !== fetchToken) {
-      return;
-    }
-
-    apiError.value = err instanceof Error ? err : new Error(String(err));
-    track.value = null;
-    deviceId.value = null;
-    playlist.value = null;
-  } finally {
-    if (token === fetchToken) {
-      loading.value = false;
-    }
-  }
-};
-
-watch(
-  [() => client?.value, () => isAuthenticated?.value, () => refreshTick.value],
-  loadTrackData,
-  { immediate: true }
-);
+const playbackButtonDisabled = computed(() => !isAuthenticated?.value || loading.value || controlLoading.value);
 
 const goHome = () => {
   router.push('/');
 };
 
 const handleRefresh = () => {
-  if (!isAuthenticated?.value || !client?.value) {
+  if (!isAuthenticated?.value) {
     return;
   }
-
-  refreshTick.value += 1;
+  refreshTrack();
 };
 
-const ensureActivePlaybackDevice = async (): Promise<string | null> => {
-  const spotifyClient = client?.value;
-
-  if (!spotifyClient) {
-    return null;
-  }
-
-  if (deviceId.value) {
-    return deviceId.value;
-  }
-
-  try {
-    const devices = await spotifyClient.player.getAvailableDevices();
-
-    const activeDevice = devices.devices.find((device) => device.is_active && device.id);
-
-    if (activeDevice?.id) {
-      deviceId.value = activeDevice.id;
-      return activeDevice.id;
-    }
-
-    const fallbackDevice = devices.devices.find((device) => device.id);
-
-    if (fallbackDevice?.id) {
-      try {
-        await spotifyClient.player.transferPlayback([fallbackDevice.id], true);
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        deviceId.value = fallbackDevice.id;
-        return fallbackDevice.id;
-      } catch (err) {
-        apiError.value = err instanceof Error ? err : new Error(String(err));
-        return null;
-      }
-    }
-  } catch (err) {
-    apiError.value = err instanceof Error ? err : new Error(String(err));
-    return null;
-  }
-
-  apiError.value = new Error(
-    'アクティブなSpotifyデバイスが見つかりません。Spotifyを開いて再生を開始してください。'
-  );
-
-  return null;
-};
-
-const handleSkip = async (direction: 'previous' | 'next') => {
-  if (!isAuthenticated?.value || !client?.value) {
-    return;
-  }
-
-  try {
-    loading.value = true;
-
-    const targetDeviceId = await ensureActivePlaybackDevice();
-
-    if (!targetDeviceId) {
-      return;
-    }
-
-    const attemptSkip = async (device: string | null) => {
-      if (!client?.value) {
-        return;
-      }
-
-      if (direction === 'next') {
-        if (device) {
-          await client.value.player.skipToNext(device);
-        } else {
-          await (client.value.player.skipToNext as unknown as (device_id?: string) => Promise<void>)();
-        }
-      } else if (direction === 'previous') {
-        if (device) {
-          await client.value.player.skipToPrevious(device);
-        } else {
-          await (client.value.player.skipToPrevious as unknown as (device_id?: string) => Promise<void>)();
-        }
-      }
-    };
-
-    try {
-      await attemptSkip(targetDeviceId);
-      apiError.value = null;
-      await loadTrackData();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-
-      if (/502/.test(message) || /NO_ACTIVE_DEVICE/.test(message) || /Bad gateway/i.test(message)) {
-        try {
-          await attemptSkip(null);
-          deviceId.value = null;
-          apiError.value = null;
-        } catch (retryErr) {
-          apiError.value =
-            retryErr instanceof Error ? retryErr : new Error(String(retryErr));
-        }
-      } else {
-        apiError.value = err instanceof Error ? err : new Error(String(err));
-      }
-
-      await loadTrackData();
-    }
-  } finally {
-    loading.value = false;
-  }
-};
-
-const skipPrevious = () => handleSkip('previous');
-const skipNext = () => handleSkip('next');
 </script>
 
 <template>
@@ -510,7 +186,7 @@ const skipNext = () => handleSkip('next');
             :device-text="deviceStatus.text"
             :device-icon="deviceStatus.icon"
             :auth-error="error"
-            :api-error="apiError"
+            :api-error="apiError || controlError"
           />
         </VCol>
 
@@ -519,7 +195,7 @@ const skipNext = () => handleSkip('next');
             :playlist="playlist"
             :loading="playlistLoading"
             :error="playlistError"
-            :max-tracks="maxPlaylistTracks"
+            :max-tracks="maxTracksDisplayed"
           />
         </VCol>
       </VRow>
