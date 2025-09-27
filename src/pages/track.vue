@@ -58,6 +58,8 @@ const albumImage = computed(() => {
 
   // Spotify画像は通常サイズ順（大→小）で並んでいるため、適切なサイズを選択
   const images = track.value.album.images;
+  console.log(images);
+  console.log(images[0].url);
   return images[0].url;
 
   // 300x300前後のサイズを優先、なければ最初の画像を使用
