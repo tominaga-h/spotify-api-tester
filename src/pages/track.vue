@@ -58,13 +58,14 @@ const albumImage = computed(() => {
 
   // Spotify画像は通常サイズ順（大→小）で並んでいるため、適切なサイズを選択
   const images = track.value.album.images;
+  return images[0].url;
 
   // 300x300前後のサイズを優先、なければ最初の画像を使用
-  const preferredImage = images.find(img =>
-    img.width && img.height && img.width >= 250 && img.width <= 640
-  ) || images[0];
+  // const preferredImage = images.find(img =>
+  //   img.width && img.height && img.width >= 250 && img.width <= 640
+  // ) || images[0];
 
-  return preferredImage?.url ?? null;
+  // return preferredImage?.url ?? null;
 });
 
 const artistNames = computed(() => {
