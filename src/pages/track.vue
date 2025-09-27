@@ -185,106 +185,111 @@ watch(
 
 let fetchToken = 0;
 
-watch(
-  [() => client?.value, () => isAuthenticated?.value, () => refreshTick.value],
-  async ([spotifyClient, authenticated]) => {
-    if (!spotifyClient || !authenticated) {
-      track.value = null;
-      deviceId.value = null;
-      playlist.value = null;
-      playlistLoading.value = false;
-      loading.value = false;
+const loadTrackData = async () => {
+  const spotifyClient = client?.value;
+  const authenticated = isAuthenticated?.value;
+
+  if (!spotifyClient || !authenticated) {
+    track.value = null;
+    deviceId.value = null;
+    playlist.value = null;
+    playlistLoading.value = false;
+    loading.value = false;
+    return;
+  }
+
+  const token = ++fetchToken;
+  loading.value = true;
+  apiError.value = null;
+  playlistError.value = null;
+  playlist.value = null;
+  playlistLoading.value = false;
+
+  try {
+    const response = await spotifyClient.player.getCurrentlyPlayingTrack();
+
+    if (token !== fetchToken) {
       return;
     }
 
-    const token = ++fetchToken;
-    loading.value = true;
-    apiError.value = null;
-    playlistError.value = null;
-    playlist.value = null;
-    playlistLoading.value = false;
-
-    try {
-      const response = await spotifyClient.player.getCurrentlyPlayingTrack();
-
-      if (token !== fetchToken) {
-        return;
-      }
-
-      deviceId.value = response?.device?.id ?? null;
-      track.value = (response && 'item' in response ? (response.item as TrackLike) : null) ?? null;
+    deviceId.value = response?.device?.id ?? null;
+    track.value = (response && 'item' in response ? (response.item as TrackLike) : null) ?? null;
 
 
-      const context = response?.context;
+    const context = response?.context;
 
-      if (context?.type === 'playlist' && typeof context.uri === 'string') {
-        const playlistId = context.uri.split(':').pop() ?? '';
+    if (context?.type === 'playlist' && typeof context.uri === 'string') {
+      const playlistId = context.uri.split(':').pop() ?? '';
 
-        if (playlistId) {
-          playlistLoading.value = true;
+      if (playlistId) {
+        playlistLoading.value = true;
 
-          try {
-            const playlistResponse = await spotifyClient.playlists.getPlaylist(playlistId);
+        try {
+          const playlistResponse = await spotifyClient.playlists.getPlaylist(playlistId);
 
-            if (token !== fetchToken) {
-              return;
-            }
+          if (token !== fetchToken) {
+            return;
+          }
 
-            const items = playlistResponse.tracks?.items ?? [];
+          const items = playlistResponse.tracks?.items ?? [];
 
-            const tracks = items
-              .map((item, index) => {
-                const playlistTrack = item?.track as TrackLike | null;
-                if (!playlistTrack) {
-                  return null;
-                }
+          const tracks = items
+            .map((item, index) => {
+              const playlistTrack = item?.track as TrackLike | null;
+              if (!playlistTrack) {
+                return null;
+              }
 
-                const trackId = playlistTrack.id ?? playlistTrack.uri ?? `playlist-track-${index}`;
+              const trackId = playlistTrack.id ?? playlistTrack.uri ?? `playlist-track-${index}`;
 
-                return {
-                  id: trackId,
-                  name: playlistTrack.name ?? 'Unknown',
-                  artists:
-                    playlistTrack.artists?.map((artist) => artist.name).filter(Boolean) ?? [],
-                };
-              })
-              .filter((item): item is PlaylistSummary['tracks'][number] => Boolean(item));
+              return {
+                id: trackId,
+                name: playlistTrack.name ?? 'Unknown',
+                artists:
+                  playlistTrack.artists?.map((artist) => artist.name).filter(Boolean) ?? [],
+              };
+            })
+            .filter((item): item is PlaylistSummary['tracks'][number] => Boolean(item));
 
-            playlist.value = {
-              id: playlistResponse.id,
-              name: playlistResponse.name,
-              tracks,
-            };
-            playlistError.value = null;
-          } catch (err) {
-            if (token !== fetchToken) {
-              return;
-            }
+          playlist.value = {
+            id: playlistResponse.id,
+            name: playlistResponse.name,
+            tracks,
+          };
+          playlistError.value = null;
+        } catch (err) {
+          if (token !== fetchToken) {
+            return;
+          }
 
-            playlistError.value = err instanceof Error ? err : new Error(String(err));
-            playlist.value = null;
-          } finally {
-            if (token === fetchToken) {
-              playlistLoading.value = false;
-            }
+          playlistError.value = err instanceof Error ? err : new Error(String(err));
+          playlist.value = null;
+        } finally {
+          if (token === fetchToken) {
+            playlistLoading.value = false;
           }
         }
       }
-    } catch (err) {
-      if (token !== fetchToken) {
-        return;
-      }
-
-      apiError.value = err instanceof Error ? err : new Error(String(err));
-      track.value = null;
-      deviceId.value = null;
-      playlist.value = null;
-    } finally {
-      if (token === fetchToken) {
-        loading.value = false;
-      }
     }
-  },
+  } catch (err) {
+    if (token !== fetchToken) {
+      return;
+    }
+
+    apiError.value = err instanceof Error ? err : new Error(String(err));
+    track.value = null;
+    deviceId.value = null;
+    playlist.value = null;
+  } finally {
+    if (token === fetchToken) {
+      loading.value = false;
+    }
+  }
+};
+
+watch(
+  [() => client?.value, () => isAuthenticated?.value, () => refreshTick.value],
+  loadTrackData,
   { immediate: true }
 );
 
@@ -407,7 +412,7 @@ const handleSkip = async (direction: 'previous' | 'next') => {
     loading.value = false;
 
     if (shouldRefresh) {
-      refreshTick.value += 1;
+      await loadTrackData();
     }
   }
 };
