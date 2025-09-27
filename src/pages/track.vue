@@ -72,13 +72,92 @@ const playlistLink = computed(() => {
   return `https://open.spotify.com/playlist/${playlist.value.id}`;
 });
 
-const limitedPlaylistTracks = computed(() => {
-  if (!playlist.value) {
-    return [];
+const playlistTracks = computed(() => playlist.value?.tracks ?? []);
+
+const limitedPlaylistTracks = computed(() => playlistTracks.value.slice(0, maxPlaylistTracks));
+
+const heroBackdropStyle = computed(() => {
+  if (!albumImage.value) {
+    return {} as Record<string, string>;
   }
 
-  return playlist.value.tracks.slice(0, maxPlaylistTracks);
+  return {
+    backgroundImage: `url(${albumImage.value})`,
+  } as Record<string, string>;
 });
+
+const trackTitle = computed(() => track.value?.name ?? '現在再生中のトラックはありません');
+
+const trackSubtitle = computed(() =>
+  track.value
+    ? artistNames.value || 'アーティスト情報が取得できませんでした'
+    : 'Spotify を再生して現在のトラックをここに表示しましょう。'
+);
+
+const deviceStatus = computed(() => {
+  if (deviceId.value) {
+    return {
+      icon: 'mdi-speaker-wave',
+      text: `再生デバイス ID: ${deviceId.value}`,
+      tone: 'success',
+    } as const;
+  }
+
+  return {
+    icon: 'mdi-speaker-off',
+    text: 'アクティブな Spotify デバイスが検出されません',
+    tone: 'warning',
+  } as const;
+});
+
+const statusChipColor = computed(() => {
+  if (isAuthenticating.value) {
+    return 'info';
+  }
+
+  if (isAuthenticated.value) {
+    return 'success';
+  }
+
+  return 'warning';
+});
+
+const trackDetails = computed(() => [
+  {
+    label: 'トラック名',
+    value: track.value?.name ?? '---',
+    icon: 'mdi-music-note',
+  },
+  {
+    label: 'アーティスト',
+    value: artistNames.value || '---',
+    icon: 'mdi-account-music',
+  },
+  {
+    label: 'プレイリスト',
+    value: playlist.value?.name ?? '---',
+    icon: 'mdi-playlist-music',
+  },
+  {
+    label: 'デバイス',
+    value: deviceStatus.value.text,
+    icon: deviceStatus.value.icon,
+  },
+]);
+
+const playlistSummary = computed(() => {
+  if (!playlist.value) {
+    return 'プレイリスト情報はありません';
+  }
+
+  return `${playlistTracks.value.length} 曲のプレイリスト`;
+});
+
+const showPlaylistLimitNotice = computed(
+  () => !!playlist.value && playlistTracks.value.length > maxPlaylistTracks
+);
+
+const playbackButtonDisabled = computed(() => !isAuthenticated.value || loading.value);
 
 watch(
   () => status.value,
@@ -317,197 +396,428 @@ const handleSkip = async (direction: 'previous' | 'next') => {
     }
   }
 };
+
+const skipPrevious = () => handleSkip('previous');
+const skipNext = () => handleSkip('next');
 </script>
 
 <template>
-  <VContainer class="py-8" max-width="960">
-    <VRow>
-      <VCol cols="12">
-        <VSheet class="pa-6 mb-6" elevation="4" rounded="xl">
-          <div class="d-flex align-center justify-space-between flex-wrap gap-4 mb-4">
-            <div>
-              <h1 class="text-h4 mb-1">Now Playing</h1>
-              <div class="text-body-2 text-medium-emphasis">Spotifyの再生状況を表示</div>
-            </div>
-            <VBtn variant="text" color="primary" prepend-icon="mdi-home" @click="goHome">
-              ホームへ戻る
-            </VBtn>
+  <div class="track-page">
+    <section class="track-hero" :class="{ 'track-hero--empty': !track }">
+      <div class="track-hero__backdrop" :style="heroBackdropStyle" />
+      <div class="track-hero__overlay" />
+      <VContainer class="track-hero__container py-10" max-width="1200">
+        <div class="track-hero__header">
+          <VChip :color="statusChipColor" variant="tonal" prepend-icon="mdi-connection-variant">
+            {{ isAuthenticated ? 'Connected' : isAuthenticating ? 'Authenticating…' : 'Awaiting login' }}
+          </VChip>
+          <VBtn variant="text" color="surface" class="track-hero__home" prepend-icon="mdi-home" @click="goHome">
+            ホームへ戻る
+          </VBtn>
+        </div>
+
+        <div class="track-hero__content">
+          <div class="track-hero__art" :class="{ 'track-hero__art--empty': !albumImage }">
+            <template v-if="albumImage">
+              <VImg :src="albumImage" alt="Album artwork" cover />
+            </template>
+            <template v-else>
+              <VIcon icon="mdi-music-box-outline" size="96" />
+            </template>
           </div>
 
-          <VAlert
-            v-if="isAuthenticating"
-            type="info"
-            variant="tonal"
-            border="start"
-            class="mb-4"
-          >
-            Spotifyの認証完了を待機しています…
-          </VAlert>
+          <div class="track-hero__info">
+            <h1 class="track-hero__title">{{ trackTitle }}</h1>
+            <p class="track-hero__subtitle">{{ trackSubtitle }}</p>
 
-          <VAlert
-            v-if="error.value"
-            type="error"
-            variant="tonal"
-            border="start"
-            class="mb-4"
-          >
-            {{ error.value.message }}
-          </VAlert>
-
-          <VAlert
-            v-if="apiError"
-            type="warning"
-            variant="tonal"
-            border="start"
-            class="mb-4"
-          >
-            {{ apiError.message }}
-          </VAlert>
-
-          <div class="d-flex flex-wrap align-center gap-4 mb-6">
-            <VBtn
-              color="primary"
-              variant="elevated"
-              :disabled="!isAuthenticated || loading"
-              :loading="loading"
-              @click="handleRefresh"
-            >
-              リフレッシュ
-            </VBtn>
-            <div class="d-flex align-center gap-2">
-              <VBtn
+            <div class="track-hero__chips">
+              <VChip :color="deviceStatus.tone" variant="tonal" :prepend-icon="deviceStatus.icon">
+                {{ deviceStatus.text }}
+              </VChip>
+              <VChip
+                v-if="playlist.value"
                 color="secondary"
                 variant="tonal"
-                :disabled="!isAuthenticated || loading"
-                @click="() => handleSkip('previous')"
+                prepend-icon="mdi-playlist-music"
               >
-                ⏮ 前の曲
-              </VBtn>
-              <VBtn
-                color="secondary"
-                variant="tonal"
-                :disabled="!isAuthenticated || loading"
-                @click="() => handleSkip('next')"
-              >
-                次の曲 ⏭
-              </VBtn>
+                {{ playlistSummary }}
+              </VChip>
             </div>
-          </div>
 
-          <div v-if="loading" class="d-flex align-center gap-4 mb-4">
-            <VProgressCircular indeterminate color="primary" />
-            <span>トラック情報を取得しています…</span>
-          </div>
-
-          <div v-else-if="track">
-            <div class="d-flex flex-wrap align-center gap-4">
-              <VAvatar size="140" rounded="lg" v-if="albumImage">
-                <VImg :src="albumImage" alt="Album artwork" cover />
-              </VAvatar>
-              <div>
-                <div class="text-h5">{{ track.name ?? 'Unknown' }}</div>
-                <div class="text-body-2 text-medium-emphasis">
-                  {{ artistNames || 'Unknown artist' }}
-                </div>
+            <div class="track-hero__controls">
+              <VBtn
+                color="primary"
+                size="large"
+                elevation="6"
+                class="track-hero__refresh"
+                :disabled="playbackButtonDisabled"
+                :loading="loading"
+                @click="handleRefresh"
+              >
+                <VIcon start icon="mdi-sync" />
+                リフレッシュ
+              </VBtn>
+              <div class="track-hero__skip-group">
+                <VBtn
+                  color="surface"
+                  variant="tonal"
+                  class="track-hero__skip track-hero__skip--light"
+                  :disabled="playbackButtonDisabled"
+                  @click="skipPrevious"
+                >
+                  <VIcon start icon="mdi-skip-previous" />
+                  前の曲
+                </VBtn>
+                <VBtn
+                  color="surface"
+                  variant="tonal"
+                  class="track-hero__skip track-hero__skip--light"
+                  :disabled="playbackButtonDisabled"
+                  @click="skipNext"
+                >
+                  次の曲
+                  <VIcon end icon="mdi-skip-next" />
+                </VBtn>
               </div>
             </div>
           </div>
+        </div>
+      </VContainer>
+    </section>
 
-          <div v-else class="text-medium-emphasis">
-            現在再生中のトラックはありません。
-          </div>
-        </VSheet>
-      </VCol>
-    </VRow>
+    <VContainer class="track-content py-10" max-width="1200">
+      <VRow align="stretch" class="g-6">
+        <VCol cols="12" md="6">
+          <VCard class="track-card" elevation="12" rounded="xl">
+            <div class="track-card__header">
+              <div>
+                <div class="text-subtitle-2 text-medium-emphasis">Playback Snapshot</div>
+                <div class="text-h5 font-weight-bold">再生情報の概要</div>
+              </div>
+            </div>
 
-    <VRow>
-      <VCol cols="12">
-        <VSheet class="pa-6" elevation="2" rounded="xl">
-          <h2 class="text-h5 mb-4">再生中のプレイリスト</h2>
-
-          <VAlert
-            v-if="playlistError"
-            type="warning"
-            variant="tonal"
-            border="start"
-            class="mb-4"
-          >
-            {{ playlistError.message }}
-          </VAlert>
-
-          <div v-if="playlistLoading" class="d-flex align-center gap-4">
-            <VProgressCircular indeterminate color="primary" />
-            <span>プレイリストを読み込み中…</span>
-          </div>
-
-          <template v-else-if="playlist">
-            <p class="mb-4">
-              プレイリスト:
-              <template v-if="playlistLink">
-                <NuxtLink
-                  :to="playlistLink"
-                  external
-                  target="_blank"
-                  class="font-weight-medium"
-                >
-                  {{ playlist.name }}
-                </NuxtLink>
-              </template>
-              <template v-else>
-                {{ playlist.name }}
-              </template>
-            </p>
-            <VList class="rounded-lg" lines="two">
+            <VList density="comfortable" lines="two">
               <VListItem
-                v-for="(item, index) in limitedPlaylistTracks"
-                :key="item.id || `playlist-${index}`"
+                v-for="item in trackDetails"
+                :key="item.label"
+                class="track-card__list-item"
               >
-                <VListItemTitle class="font-weight-medium">{{ item.name }}</VListItemTitle>
-                <VListItemSubtitle v-if="item.artists.length">
-                  {{ item.artists.join(', ') }}
+                <template #prepend>
+                  <VAvatar color="primary" variant="tonal" size="40">
+                    <VIcon :icon="item.icon" size="22" />
+                  </VAvatar>
+                </template>
+                <VListItemTitle class="text-caption text-medium-emphasis text-uppercase">
+                  {{ item.label }}
+                </VListItemTitle>
+                <VListItemSubtitle class="text-body-1 font-weight-medium">
+                  {{ item.value }}
                 </VListItemSubtitle>
               </VListItem>
             </VList>
-            <p v-if="playlist.tracks.length > maxPlaylistTracks" class="text-body-2 text-medium-emphasis mt-4">
-              最初の {{ maxPlaylistTracks }} 曲を表示しています。完全なリストはSpotifyでご確認ください。
-            </p>
-          </template>
 
-          <div v-else class="text-medium-emphasis">
-            現在のトラックはプレイリスト由来ではありません。
-          </div>
-        </VSheet>
-      </VCol>
-    </VRow>
-  </VContainer>
+            <div class="track-card__alerts">
+              <VAlert
+                v-if="error.value"
+                type="error"
+                variant="tonal"
+                border="start"
+                class="mb-3"
+              >
+                {{ error.value.message }}
+              </VAlert>
+
+              <VAlert
+                v-if="apiError"
+                type="warning"
+                variant="tonal"
+                border="start"
+                class="mb-3"
+              >
+                {{ apiError.message }}
+              </VAlert>
+            </div>
+          </VCard>
+        </VCol>
+
+        <VCol cols="12" md="6">
+          <VCard class="playlist-card" elevation="12" rounded="xl">
+            <div class="playlist-card__header">
+              <div>
+                <div class="text-subtitle-2 text-medium-emphasis">Current Playlist Context</div>
+                <div class="text-h5 font-weight-bold">
+                  {{ playlist.value ? playlist.value.name : 'プレイリスト情報はありません' }}
+                </div>
+              </div>
+              <VBtn
+                v-if="playlistLink"
+                variant="text"
+                color="primary"
+                prepend-icon="mdi-open-in-new"
+                :href="playlistLink"
+                target="_blank"
+                rel="noopener"
+              >
+                Spotify で開く
+              </VBtn>
+            </div>
+
+            <div v-if="playlistLoading" class="playlist-card__loading">
+              <VProgressCircular indeterminate color="primary" class="mr-4" />
+              <span>プレイリストを読み込み中です…</span>
+            </div>
+
+            <template v-else>
+              <div v-if="playlist.value" class="playlist-card__timeline">
+                <VTimeline density="comfortable" align="start">
+                  <VTimelineItem
+                    v-for="(item, index) in limitedPlaylistTracks"
+                    :key="item.id || `playlist-${index}`"
+                    dot-color="primary"
+                    size="small"
+                  >
+                    <div class="text-subtitle-1 font-weight-medium">
+                      {{ index + 1 }}. {{ item.name }}
+                    </div>
+                    <div class="text-body-2 text-medium-emphasis">
+                      {{ item.artists.length ? item.artists.join(', ') : 'アーティスト情報なし' }}
+                    </div>
+                  </VTimelineItem>
+                </VTimeline>
+
+                <VAlert
+                  v-if="showPlaylistLimitNotice"
+                  type="info"
+                  variant="tonal"
+                  border="start"
+                  class="mt-4"
+                >
+                  最初の {{ maxPlaylistTracks }} 曲を表示しています。完全なリストは Spotify で確認してください。
+                </VAlert>
+              </div>
+
+              <div v-else class="playlist-card__empty text-medium-emphasis">
+                現在のトラックはプレイリストに紐付いていません。
+              </div>
+
+              <VAlert
+                v-if="playlistError"
+                type="warning"
+                variant="tonal"
+                border="start"
+                class="mt-4"
+              >
+                {{ playlistError.message }}
+              </VAlert>
+            </template>
+          </VCard>
+        </VCol>
+      </VRow>
+    </VContainer>
+  </div>
 </template>
 
 <style lang="scss">
-body {
-  margin: 0;
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: radial-gradient(circle at top, #1a1f2a 0%, #0f1118 40%, #08090d 100%);
-  color: #f5f5f5;
+.track-page {
+  position: relative;
   min-height: 100vh;
 }
 
-.app-main {
-  min-height: 100vh;
+.track-hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(12, 18, 26, 0.95), rgba(29, 185, 84, 0.18));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.app-wrapper {
-  min-height: 100vh;
+.track-hero--empty {
+  background: linear-gradient(135deg, rgba(14, 18, 28, 0.95), rgba(22, 52, 40, 0.35));
+}
+
+.track-hero__backdrop {
+  position: absolute;
+  inset: -30%;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.35;
+  filter: blur(18px) saturate(130%);
+  transform: scale(1.1);
+}
+
+.track-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(8, 11, 18, 0.95), rgba(8, 11, 18, 0.45));
+}
+
+.track-hero__container {
+  position: relative;
+  z-index: 1;
+}
+
+.track-hero__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.track-hero__home {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.track-hero__content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+.track-hero__art {
+  width: 220px;
+  height: 220px;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+  display: grid;
+  place-items: center;
+  background: rgba(29, 185, 84, 0.12);
+}
+
+.track-hero__art--empty {
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+}
+
+.track-hero__info {
+  flex: 1;
+  min-width: 260px;
+}
+
+.track-hero__title {
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+
+.track-hero__subtitle {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 1.5rem;
+}
+
+.track-hero__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.track-hero__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.track-hero__refresh {
+  border-radius: 999px;
+  padding-inline: 1.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.track-hero__skip-group {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.track-hero__skip {
+  border-radius: 999px;
+  min-width: 140px;
+  backdrop-filter: blur(12px);
+}
+
+.track-hero__skip--light {
+  color: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.track-hero__skip--light .v-icon {
+  color: inherit;
+}
+
+.track-content {
+  position: relative;
+  z-index: 2;
+}
+
+.track-card,
+.playlist-card {
+  background: rgba(14, 19, 29, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 2rem;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
 }
 
-.config-error {
-  max-width: 640px;
-  margin: 0 auto;
+.track-card__header,
+.playlist-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
 }
 
-code {
-  font-family: 'Fira Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+.track-card__list-item {
+  border-radius: 18px;
+  margin-bottom: 0.8rem;
+  padding: 0.85rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.track-card__alerts {
+  margin-top: auto;
+}
+
+.playlist-card__loading {
+  display: flex;
+  align-items: center;
+  border-radius: 18px;
+  background: rgba(22, 28, 40, 0.85);
+  padding: 1.2rem;
+}
+
+.playlist-card__timeline {
+  flex: 1;
+}
+
+.playlist-card__empty {
+  padding: 1.5rem;
+  border-radius: 18px;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+}
+
+@media (max-width: 960px) {
+  .track-hero__content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .track-hero__art {
+    width: 180px;
+    height: 180px;
+  }
+
+  .track-hero__controls {
+    width: 100%;
+  }
+
+  .track-hero__refresh,
+  .track-hero__skip {
+    flex: 1;
+  }
 }
 </style>

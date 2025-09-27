@@ -30,6 +30,7 @@ export { requestIdleCallback, cancelIdleCallback } from '#app/compat/idle-callba
 export { setInterval } from '#app/compat/interval';
 export { definePageMeta } from '../node_modules/nuxt/dist/pages/runtime/composables';
 export { defineLazyHydrationComponent } from '#app/composables/lazy-hydration';
+export { useParticleAnimations, useAnimationDelays, useHoverEffects, useAnimationState, useScrollAnimations, useAnimationUtils } from '../src/composables/useAnimations';
 export { initSpotifyAuth, useSpotifyAuth } from '../src/composables/useSpotifyAuth';
 export { useSpotifyConfig } from '../src/composables/useSpotifyConfig';
 export { createSpotifyClient, SpotifyClientConfig } from '../src/utils/spotify';
