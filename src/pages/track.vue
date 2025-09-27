@@ -423,7 +423,7 @@ const skipNext = () => handleSkip('next');
       <div class="track-hero__overlay" />
       <VContainer class="track-hero__container py-10" max-width="1200">
         <div class="track-hero__header">
-          <VChip :color="statusChipColor" variant="tonal" prepend-icon="mdi-connection-variant">
+          <VChip :color="statusChipColor" variant="tonal" prepend-icon="mdi-account-music">
             {{ isAuthenticated ? 'Connected' : isAuthenticating ? 'Authenticating…' : 'Awaiting login' }}
           </VChip>
           <VBtn variant="text" color="surface" class="track-hero__home" prepend-icon="mdi-home" @click="goHome">
