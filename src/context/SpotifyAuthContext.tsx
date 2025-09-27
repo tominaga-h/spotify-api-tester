@@ -10,6 +10,7 @@ interface SpotifyAuthContextValue {
   client: ReturnType<typeof useSpotifyAuth>["client"];
   error: ReturnType<typeof useSpotifyAuth>["error"];
   authenticate: ReturnType<typeof useSpotifyAuth>["authenticate"];
+  logOut: ReturnType<typeof useSpotifyAuth>["logOut"];
 }
 
 const SpotifyAuthContext = createContext<SpotifyAuthContextValue | undefined>(
@@ -34,8 +35,9 @@ export function SpotifyAuthProvider({
       client: auth.client,
       error: auth.error,
       authenticate: auth.authenticate,
+      logOut: auth.logOut,
     }),
-    [auth.authenticate, auth.client, auth.error, auth.status, config]
+    [auth.authenticate, auth.client, auth.error, auth.logOut, auth.status, config]
   );
 
   return (

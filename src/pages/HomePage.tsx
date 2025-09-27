@@ -12,7 +12,7 @@ interface SpotifyProfile {
 
 export function HomePage() {
   const navigate = useNavigate();
-  const { config, status, error, client } = useSpotifyAuthContext();
+  const { config, status, error, client, logOut } = useSpotifyAuthContext();
   const [profile, setProfile] = useState<SpotifyProfile | null>(null);
 
   useEffect(() => {
@@ -26,7 +26,6 @@ export function HomePage() {
     (async () => {
       try {
         const profileResponse = await client.currentUser.profile();
-        console.log(await client.player.getCurrentlyPlayingTrack("ES"));
 
         if (!cancelled) {
           setProfile(profileResponse as SpotifyProfile);
@@ -45,6 +44,14 @@ export function HomePage() {
   }, [client]);
 
   const handleNavigateToLogin = () => {
+    const reauth = status === "authenticated";
+
+    if (reauth) {
+      logOut();
+      navigate("/login", { state: { reauthenticate: true } });
+      return;
+    }
+
     navigate("/login");
   };
 

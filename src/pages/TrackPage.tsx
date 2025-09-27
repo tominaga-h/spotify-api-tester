@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 
 import { useSpotifyAuthContext } from "../context/SpotifyAuthContext.js";
@@ -179,33 +179,116 @@ export function TrackPage() {
     setRefreshTick((tick) => tick + 1);
   };
 
+  const ensureActivePlaybackDevice = useCallback(async (): Promise<string | null> => {
+    if (!client) {
+      return null;
+    }
+
+    if (deviceId) {
+      return deviceId;
+    }
+
+    try {
+      const devices = await client.player.getAvailableDevices();
+
+      const activeDevice = devices.devices.find((device) => device.is_active && device.id);
+
+      if (activeDevice?.id) {
+        setDeviceId(activeDevice.id);
+        return activeDevice.id;
+      }
+
+      const fallbackDevice = devices.devices.find((device) => device.id);
+
+      if (fallbackDevice?.id) {
+        try {
+          await client.player.transferPlayback([fallbackDevice.id], true);
+          // Give Spotify a moment to finalize playback transfer before issuing skip commands.
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          setDeviceId(fallbackDevice.id);
+          return fallbackDevice.id;
+        } catch (err) {
+          setApiError(err instanceof Error ? err : new Error(String(err)));
+          return null;
+        }
+      }
+    } catch (err) {
+      setApiError(err instanceof Error ? err : new Error(String(err)));
+      return null;
+    }
+
+    setApiError(
+      new Error(
+        "No active Spotify device found. Open Spotify on one of your devices and press play before using the controls."
+      )
+    );
+
+    return null;
+  }, [client, deviceId]);
+
   const handleSkip = async (direction: "previous" | "next") => {
     if (!isAuthenticated || !client) {
       return;
     }
 
+    let shouldRefresh = false;
+
     try {
       setLoading(true);
 
-      if (direction === "next") {
-        if (deviceId) {
-          await client.player.skipToNext(deviceId);
-        } else {
-          await (client.player.skipToNext as unknown as () => Promise<void>)();
-        }
-      } else {
-        if (deviceId) {
-          await client.player.skipToPrevious(deviceId);
-        } else {
-          await (client.player.skipToPrevious as unknown as () => Promise<void>)();
-        }
+      const targetDeviceId = await ensureActivePlaybackDevice();
+
+      if (!targetDeviceId) {
+        return;
       }
 
-      setApiError(null);
-    } catch (err) {
-      setApiError(err instanceof Error ? err : new Error(String(err)));
+      const attemptSkip = async (device: string | null) => {
+        if (direction === "next") {
+          if (device) {
+            await client.player.skipToNext(device);
+          } else {
+            await (client.player.skipToNext as unknown as (device_id?: string) => Promise<void>)();
+          }
+        } else {
+          if (device) {
+            await client.player.skipToPrevious(device);
+          } else {
+            await (client.player.skipToPrevious as unknown as (device_id?: string) => Promise<void>)();
+          }
+        }
+      };
+
+      try {
+        await attemptSkip(targetDeviceId);
+        shouldRefresh = true;
+        setApiError(null);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+
+        // Spotify occasionally returns 502 or NO_ACTIVE_DEVICE. Retry once without specifying the device.
+        if (/502/.test(message) || /NO_ACTIVE_DEVICE/.test(message) || /Bad gateway/i.test(message)) {
+          try {
+            await attemptSkip(null);
+            shouldRefresh = true;
+            setDeviceId(null); // force re-detection next run
+            setApiError(null);
+          } catch (retryErr) {
+            setApiError(
+              retryErr instanceof Error
+                ? retryErr
+                : new Error(String(retryErr))
+            );
+          }
+        } else {
+          setApiError(err instanceof Error ? err : new Error(String(err)));
+        }
+      }
     } finally {
-      setRefreshTick((tick) => tick + 1);
+      setLoading(false);
+
+      if (shouldRefresh) {
+        setRefreshTick((tick) => tick + 1);
+      }
     }
   };
 

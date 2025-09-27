@@ -4,11 +4,23 @@ import { Navigate } from "react-router-dom";
 import { useSpotifyAuthContext } from "../context/SpotifyAuthContext.js";
 
 export function CallbackPage() {
-  const { status, error } = useSpotifyAuthContext();
+  const { status, error, authenticate } = useSpotifyAuthContext();
   const hasCode = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
     return params.has("code");
   }, []);
+
+  useEffect(() => {
+    if (!hasCode) {
+      return;
+    }
+
+    if (status === "idle") {
+      authenticate().catch((err) => {
+        console.error(err);
+      });
+    }
+  }, [authenticate, hasCode, status]);
 
   useEffect(() => {
     if (status === "authenticated") {

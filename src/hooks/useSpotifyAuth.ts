@@ -10,6 +10,7 @@ interface SpotifyAuthState {
   client: SpotifyApi | null;
   error: Error | null;
   authenticate: () => Promise<void>;
+  logOut: () => void;
 }
 
 export function useSpotifyAuth(config?: SpotifyClientConfig | null): SpotifyAuthState {
@@ -101,5 +102,19 @@ export function useSpotifyAuth(config?: SpotifyClientConfig | null): SpotifyAuth
     }
   }, []);
 
-  return { status, client, error, authenticate };
+  const logOut = useCallback(() => {
+    if (client) {
+      try {
+        client.logOut();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    setClient(null);
+    setStatus("idle");
+    setError(null);
+  }, [client]);
+
+  return { status, client, error, authenticate, logOut };
 }
