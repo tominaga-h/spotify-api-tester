@@ -356,8 +356,6 @@ const handleSkip = async (direction: 'previous' | 'next') => {
     return;
   }
 
-  let shouldRefresh = false;
-
   try {
     loading.value = true;
 
@@ -389,15 +387,14 @@ const handleSkip = async (direction: 'previous' | 'next') => {
 
     try {
       await attemptSkip(targetDeviceId);
-      shouldRefresh = true;
       apiError.value = null;
+      await loadTrackData();
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
 
       if (/502/.test(message) || /NO_ACTIVE_DEVICE/.test(message) || /Bad gateway/i.test(message)) {
         try {
           await attemptSkip(null);
-          shouldRefresh = true;
           deviceId.value = null;
           apiError.value = null;
         } catch (retryErr) {
@@ -407,13 +404,11 @@ const handleSkip = async (direction: 'previous' | 'next') => {
       } else {
         apiError.value = err instanceof Error ? err : new Error(String(err));
       }
+
+      await loadTrackData();
     }
   } finally {
     loading.value = false;
-
-    if (shouldRefresh) {
-      await loadTrackData();
-    }
   }
 };
 
