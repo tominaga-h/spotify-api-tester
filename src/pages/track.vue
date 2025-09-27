@@ -434,12 +434,7 @@ const skipNext = () => handleSkip('next');
         <div class="track-hero__content">
           <div class="track-hero__art" :class="{ 'track-hero__art--empty': !albumImage }">
             <template v-if="albumImage">
-              <VImg
-                :src="albumImage"
-                alt="Album artwork"
-                cover
-                :transition="false"
-              />
+              <img :src="albumImage" alt="Album artwork" />
             </template>
             <template v-else>
               <VIcon icon="mdi-music-box-outline" size="96" />
