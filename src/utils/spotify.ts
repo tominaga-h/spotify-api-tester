@@ -1,7 +1,7 @@
 import {
   AuthorizationCodeWithPKCEStrategy,
   SpotifyApi,
-} from "@spotify/web-api-ts-sdk";
+} from '@spotify/web-api-ts-sdk';
 
 export interface SpotifyClientConfig {
   clientId: string;
