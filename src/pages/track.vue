@@ -186,6 +186,34 @@ const handleRefresh = () => {
       </VContainer>
     </section>
 
+    <section class="track-summary">
+      <VContainer class="track-summary__container py-8" max-width="1200">
+        <h2 class="track-summary__main-title">QRコード</h2>
+        <VRow align="start" class="g-8">
+          <VCol cols="12" md="6">
+            <div class="track-summary__qr-section">
+              <h3 class="track-summary__qr-title">楽曲</h3>
+              <QRCodeDisplay
+                :track-id="track?.id"
+                :loading="loading"
+                size="large"
+              />
+            </div>
+          </VCol>
+          <VCol cols="12" md="6">
+            <div class="track-summary__qr-section">
+              <h3 class="track-summary__qr-title">プレイリスト</h3>
+              <QRCodeDisplay
+                :playlist-id="playlistId"
+                :loading="playlistLoading"
+                size="large"
+              />
+            </div>
+          </VCol>
+        </VRow>
+      </VContainer>
+    </section>
+
     <VContainer class="track-content py-10" max-width="1200">
       <VRow align="stretch" class="g-6">
         <VCol cols="12" md="6">
@@ -359,6 +387,40 @@ const handleRefresh = () => {
         color: inherit;
       }
     }
+  }
+}
+
+.track-summary {
+  position: relative;
+  z-index: 2;
+  background: rgba(8, 11, 18, 0.85);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+
+  &__container {
+    position: relative;
+  }
+
+  &__main-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.95);
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  &__qr-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  &__qr-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: center;
   }
 }
 

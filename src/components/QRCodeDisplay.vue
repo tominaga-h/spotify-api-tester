@@ -4,14 +4,18 @@ import QRCode from 'qrcode';
 
 interface Props {
   trackId?: string | null;
+  playlistId?: string | null;
   loading?: boolean;
   heroMode?: boolean;
+  size?: 'small' | 'medium' | 'large';
 }
 
 const props = withDefaults(defineProps<Props>(), {
   trackId: null,
+  playlistId: null,
   loading: false,
-  heroMode: false
+  heroMode: false,
+  size: 'medium'
 });
 
 const qrCodeDataUrl = ref<string | null>(null);
@@ -19,8 +23,35 @@ const qrLoading = ref(false);
 const qrError = ref<string | null>(null);
 
 const spotifyUrl = computed(() => {
-  if (!props.trackId) return null;
-  return `https://open.spotify.com/track/${props.trackId}`;
+  if (props.trackId) {
+    return `https://open.spotify.com/track/${props.trackId}`;
+  }
+  if (props.playlistId) {
+    return `https://open.spotify.com/playlist/${props.playlistId}`;
+  }
+  return null;
+});
+
+const qrTitle = computed(() => {
+  if (props.trackId) return 'Spotify 楽曲 QRコード';
+  if (props.playlistId) return 'Spotify プレイリスト QRコード';
+  return 'Spotify QRコード';
+});
+
+const qrDescription = computed(() => {
+  if (props.trackId) return 'QRコードをスキャンしてSpotifyで楽曲を開く';
+  if (props.playlistId) return 'QRコードをスキャンしてSpotifyでプレイリストを開く';
+  return 'QRコードをスキャンしてSpotifyで開く';
+});
+
+const qrSize = computed(() => {
+  if (props.heroMode) return 120;
+  switch (props.size) {
+    case 'small': return 150;
+    case 'medium': return 200;
+    case 'large': return 300;
+    default: return 200;
+  }
 });
 
 const generateQRCode = async () => {
@@ -34,7 +65,7 @@ const generateQRCode = async () => {
 
   try {
     const dataUrl = await QRCode.toDataURL(spotifyUrl.value, {
-      width: props.heroMode ? 120 : 200,
+      width: qrSize.value,
       margin: 2,
       color: {
         dark: '#1DB954',
@@ -68,7 +99,7 @@ watch(spotifyUrl, generateQRCode, { immediate: true });
             <img :src="qrCodeDataUrl" alt="Spotify QR Code" />
           </div>
         </template>
-        <span>QRコードをスキャンしてSpotifyで楽曲を開く</span>
+        <span>{{ qrDescription }}</span>
       </VTooltip>
     </div>
   </div>
@@ -76,7 +107,7 @@ watch(spotifyUrl, generateQRCode, { immediate: true });
   <VCard v-else class="qr-code-card">
     <VCardTitle class="qr-code-card__header">
       <VIcon icon="mdi-qrcode" class="me-2" />
-      Spotify QRコード
+      {{ qrTitle }}
     </VCardTitle>
 
     <VCardText class="qr-code-card__content">
@@ -96,10 +127,10 @@ watch(spotifyUrl, generateQRCode, { immediate: true });
         </VAlert>
       </div>
 
-      <div v-else-if="!trackId" class="qr-code-card__empty">
+      <div v-else-if="!trackId && !playlistId" class="qr-code-card__empty">
         <VIcon icon="mdi-music-box-outline" size="48" class="mb-3" />
         <p class="text-body-2 text-medium-emphasis">
-          現在再生中のトラックがありません
+          {{ trackId ? '現在再生中のトラックがありません' : 'プレイリスト情報がありません' }}
         </p>
       </div>
 
@@ -109,7 +140,7 @@ watch(spotifyUrl, generateQRCode, { immediate: true });
         </div>
         <div class="qr-code-card__qr-info">
           <p class="text-body-2 text-medium-emphasis mb-2">
-            このQRコードをスキャンしてSpotifyで楽曲を開く
+            {{ qrDescription }}
           </p>
           <VBtn
             :href="spotifyUrl"
@@ -219,8 +250,9 @@ watch(spotifyUrl, generateQRCode, { immediate: true });
 
     img {
       display: block;
-      width: 200px;
-      height: 200px;
+      width: 100%;
+      height: auto;
+      max-width: 300px;
     }
   }
 
