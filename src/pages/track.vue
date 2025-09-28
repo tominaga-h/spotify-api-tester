@@ -207,6 +207,7 @@ const handleRefresh = () => {
 .text-white {
   color: #fff !important;
 }
+
 .track-page {
   position: relative;
   min-height: 100vh;
@@ -217,127 +218,127 @@ const handleRefresh = () => {
   overflow: hidden;
   background: linear-gradient(135deg, rgba(12, 18, 26, 0.95), rgba(29, 185, 84, 0.18));
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
 
-.track-hero--empty {
-  background: linear-gradient(135deg, rgba(14, 18, 28, 0.95), rgba(22, 52, 40, 0.35));
-}
+  &--empty {
+    background: linear-gradient(135deg, rgba(14, 18, 28, 0.95), rgba(22, 52, 40, 0.35));
+  }
 
-.track-hero__backdrop {
-  position: absolute;
-  inset: -30%;
-  background-size: cover;
-  background-position: center;
-  opacity: 0.35;
-  filter: blur(18px) saturate(130%);
-  transform: scale(1.1);
-}
+  &__backdrop {
+    position: absolute;
+    inset: -30%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.35;
+    filter: blur(18px) saturate(130%);
+    transform: scale(1.1);
+  }
 
-.track-hero__overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(120deg, rgba(8, 11, 18, 0.95), rgba(8, 11, 18, 0.45));
-}
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(8, 11, 18, 0.95), rgba(8, 11, 18, 0.45));
+  }
 
-.track-hero__container {
-  position: relative;
-  z-index: 1;
-}
+  &__container {
+    position: relative;
+    z-index: 1;
+  }
 
-.track-hero__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 2.5rem;
-}
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
 
-.track-hero__home {
-  color: rgba(255, 255, 255, 0.85) !important;
-}
+  &__home {
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
 
-.track-hero__content {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2.5rem;
-  align-items: center;
-}
+  &__content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2.5rem;
+    align-items: center;
+  }
 
-.track-hero__art {
-  width: 220px;
-  height: 220px;
-  border-radius: 28px;
-  overflow: hidden;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
-  display: grid;
-  place-items: center;
-  background: rgba(29, 185, 84, 0.12);
-}
+  &__art {
+    width: 220px;
+    height: 220px;
+    border-radius: 28px;
+    overflow: hidden;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+    display: grid;
+    place-items: center;
+    background: rgba(29, 185, 84, 0.12);
 
-.track-hero__art img {
-  width: 100%;
-}
+    img {
+      width: 100%;
+    }
 
-.track-hero__art--empty {
-  border: 2px dashed rgba(255, 255, 255, 0.2);
-}
+    &--empty {
+      border: 2px dashed rgba(255, 255, 255, 0.2);
+    }
+  }
 
-.track-hero__info {
-  flex: 1;
-  min-width: 260px;
-}
+  &__info {
+    flex: 1;
+    min-width: 260px;
+  }
 
-.track-hero__title {
-  font-size: clamp(1.8rem, 3vw, 2.6rem);
-  font-weight: 700;
-  margin-bottom: 0.6rem;
-}
+  &__title {
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
 
-.track-hero__subtitle {
-  font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.75);
-  margin-bottom: 1.5rem;
-}
+  &__subtitle {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.75);
+    margin-bottom: 1.5rem;
+  }
 
-.track-hero__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 2rem;
-}
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
 
-.track-hero__controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: center;
-}
+  &__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+  }
 
-.track-hero__refresh {
-  border-radius: 999px;
-  padding-inline: 1.8rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
+  &__refresh {
+    border-radius: 999px;
+    padding-inline: 1.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
 
-.track-hero__skip-group {
-  display: flex;
-  gap: 0.75rem;
-}
+  &__skip-group {
+    display: flex;
+    gap: 0.75rem;
+  }
 
-.track-hero__skip {
-  border-radius: 999px;
-  min-width: 140px;
-  backdrop-filter: blur(12px);
-}
+  &__skip {
+    border-radius: 999px;
+    min-width: 140px;
+    backdrop-filter: blur(12px);
 
-.track-hero__skip--light {
-  color: rgba(255, 255, 255, 0.9) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-}
+    &--light {
+      color: rgba(255, 255, 255, 0.9) !important;
+      border: 1px solid rgba(255, 255, 255, 0.12);
 
-.track-hero__skip--light .v-icon {
-  color: inherit;
+      .v-icon {
+        color: inherit;
+      }
+    }
+  }
 }
 
 .track-content {

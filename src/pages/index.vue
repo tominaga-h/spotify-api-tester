@@ -79,7 +79,6 @@ const navigateToTrack = () => {
 </template>
 
 <style lang="scss">
-// Revolutionary Minimalist Home Page
 .home-page {
   min-height: 100vh;
   padding: var(--space-12) var(--space-8);
@@ -89,7 +88,6 @@ const navigateToTrack = () => {
   margin: 0 auto;
 }
 
-// Minimal Hero Section
 .hero-section {
   flex: 1;
   display: flex;
@@ -111,144 +109,149 @@ const navigateToTrack = () => {
   gap: var(--space-6);
 }
 
-// Status Indicator - Minimal Design
 .status-indicator {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   margin-bottom: var(--space-8);
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--base-500);
+    transition: background-color var(--duration-normal) var(--ease-out);
+  }
+
+  &__text {
+    font-size: var(--text-sm);
+    color: var(--base-600);
+    font-variation-settings: 'wght' 500;
+  }
+
+  &--success {
+    .status-indicator__dot {
+      background: var(--status-success);
+      box-shadow: var(--glow-green);
+      animation: neonPulse 2s ease-in-out infinite;
+    }
+  }
+
+  &--warning {
+    .status-indicator__dot {
+      background: var(--status-warning);
+    }
+  }
+
+  &--error {
+    .status-indicator__dot {
+      background: var(--status-error);
+    }
+  }
 }
 
-.status-indicator__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--base-500);
-  transition: background-color var(--duration-normal) var(--ease-out);
+.hero-card {
+  &__bg-elements {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  &__mesh {
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 25% 25%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+      radial-gradient(circle at 50% 50%, rgba(29, 215, 96, 0.06) 0%, transparent 50%);
+    animation: meshFloat 20s ease-in-out infinite;
+  }
+
+  &__orbs {
+    position: absolute;
+    inset: 0;
+  }
+
+  &__orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.6;
+    animation: orbFloat 15s ease-in-out infinite;
+
+    &--1 {
+      width: 200px;
+      height: 200px;
+      top: -50px;
+      right: -50px;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%);
+      animation-delay: 0s;
+    }
+
+    &--2 {
+      width: 150px;
+      height: 150px;
+      bottom: -30px;
+      left: -30px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, transparent 70%);
+      animation-delay: 5s;
+    }
+
+    &--3 {
+      width: 100px;
+      height: 100px;
+      top: 40%;
+      left: 60%;
+      background: radial-gradient(circle, rgba(29, 215, 96, 0.2) 0%, transparent 70%);
+      animation-delay: 10s;
+    }
+  }
+
+  &__sparkles {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  &__sparkle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 100%);
+    border-radius: 50%;
+    transform: translate(var(--sparkle-x), var(--sparkle-y));
+    animation: sparkle var(--sparkle-duration) ease-in-out infinite var(--sparkle-delay);
+  }
+
+  &__badge {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 1rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    animation: fadeInDown 0.6s ease-out 0.2s both;
+
+    &-glow {
+      position: absolute;
+      inset: -2px;
+      border-radius: 999px;
+      background: linear-gradient(45deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3));
+      filter: blur(8px);
+      opacity: 0;
+      animation: pulse 2s ease-in-out infinite;
+    }
+  }
 }
 
-.status-indicator--success .status-indicator__dot {
-  background: var(--status-success);
-  box-shadow: var(--glow-green);
-  animation: neonPulse 2s ease-in-out infinite;
-}
-
-.status-indicator--warning .status-indicator__dot {
-  background: var(--status-warning);
-}
-
-.status-indicator--error .status-indicator__dot {
-  background: var(--status-error);
-}
-
-.status-indicator__text {
-  font-size: var(--text-sm);
-  color: var(--base-600);
-  font-variation-settings: 'wght' 500;
-}
-
-.hero-card__bg-elements {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.hero-card__mesh {
-  position: absolute;
-  inset: 0;
-  background-image:
-    radial-gradient(circle at 25% 25%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 50% 50%, rgba(29, 215, 96, 0.06) 0%, transparent 50%);
-  animation: meshFloat 20s ease-in-out infinite;
-}
-
-.hero-card__orbs {
-  position: absolute;
-  inset: 0;
-}
-
-.hero-card__orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(40px);
-  opacity: 0.6;
-  animation: orbFloat 15s ease-in-out infinite;
-}
-
-.hero-card__orb--1 {
-  width: 200px;
-  height: 200px;
-  top: -50px;
-  right: -50px;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%);
-  animation-delay: 0s;
-}
-
-.hero-card__orb--2 {
-  width: 150px;
-  height: 150px;
-  bottom: -30px;
-  left: -30px;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, transparent 70%);
-  animation-delay: 5s;
-}
-
-.hero-card__orb--3 {
-  width: 100px;
-  height: 100px;
-  top: 40%;
-  left: 60%;
-  background: radial-gradient(circle, rgba(29, 215, 96, 0.2) 0%, transparent 70%);
-  animation-delay: 10s;
-}
-
-.hero-card__sparkles {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.hero-card__sparkle {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 100%);
-  border-radius: 50%;
-  transform: translate(var(--sparkle-x), var(--sparkle-y));
-  animation: sparkle var(--sparkle-duration) ease-in-out infinite var(--sparkle-delay);
-}
-
-
-.hero-card__badge {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  padding: 0.45rem 1rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  margin-bottom: 1.5rem;
-  animation: fadeInDown 0.6s ease-out 0.2s both;
-}
-
-.hero-card__badge-glow {
-  position: absolute;
-  inset: -2px;
-  border-radius: 999px;
-  background: linear-gradient(45deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3));
-  filter: blur(8px);
-  opacity: 0;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-// Minimal Typography
 .hero-title {
   font-size: var(--text-5xl);
   font-family: var(--font-display);
@@ -257,25 +260,24 @@ const navigateToTrack = () => {
   letter-spacing: -0.04em;
   margin-bottom: var(--space-6);
   color: var(--base-900);
-}
 
-.hero-title__primary {
-  display: block;
-  font-variation-settings: 'wght' 800;
-  background: var(--gradient-neon-1);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: textGlow 3s ease-in-out infinite;
-}
+  &__primary {
+    display: block;
+    font-variation-settings: 'wght' 800;
+    background: var(--gradient-neon-1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: textGlow 3s ease-in-out infinite;
+  }
 
-.hero-title__secondary {
-  display: block;
-  font-variation-settings: 'wght' 200;
-  color: var(--base-600);
-  margin-top: var(--space-2);
+  &__secondary {
+    display: block;
+    font-variation-settings: 'wght' 200;
+    color: var(--base-600);
+    margin-top: var(--space-2);
+  }
 }
-
 
 .hero-description {
   font-size: var(--text-lg);
@@ -293,7 +295,6 @@ const navigateToTrack = () => {
   font-weight: 600;
 }
 
-// Minimal Action Buttons
 .hero-actions {
   display: flex;
   gap: var(--space-4);
@@ -324,37 +325,37 @@ const navigateToTrack = () => {
     box-shadow: var(--shadow-neumorphic-pressed);
     transform: translateY(2px);
   }
-}
 
-.action-btn--primary {
-  background: var(--gradient-neon-2);
-  color: var(--base-white);
-  border: 2px solid var(--neon-electric);
-  box-shadow: var(--glow-electric);
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--gradient-neon-3);
-    opacity: 0;
-    transition: opacity var(--duration-normal) var(--ease-out);
-  }
-
-  &:hover {
-    box-shadow: var(--glow-pink);
-    animation: neonPulse 1s ease-in-out infinite;
+  &--primary {
+    background: var(--gradient-neon-2);
+    color: var(--base-white);
+    border: 2px solid var(--neon-electric);
+    box-shadow: var(--glow-electric);
+    position: relative;
+    overflow: hidden;
 
     &::before {
-      opacity: 1;
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--gradient-neon-3);
+      opacity: 0;
+      transition: opacity var(--duration-normal) var(--ease-out);
+    }
+
+    &:hover {
+      box-shadow: var(--glow-pink);
+      animation: neonPulse 1s ease-in-out infinite;
+
+      &::before {
+        opacity: 1;
+      }
     }
   }
-}
 
-.action-btn__text {
-  display: block;
+  &__text {
+    display: block;
+  }
 }
 
 // Hero Visual Section - Minimal Profile

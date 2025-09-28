@@ -137,26 +137,26 @@ const isError = computed(() => status.value === 'error');
   overflow: hidden;
   pointer-events: none;
   z-index: 0;
-}
 
-.callback-background__gradient {
-  position: absolute;
-  width: 420px;
-  height: 420px;
-  filter: blur(90px);
-  opacity: 0.75;
-}
+  &__gradient {
+    position: absolute;
+    width: 420px;
+    height: 420px;
+    filter: blur(90px);
+    opacity: 0.75;
 
-.callback-background__gradient--top {
-  top: -100px;
-  right: -60px;
-  background: radial-gradient(circle, rgba(29, 185, 84, 0.8), rgba(12, 26, 20, 0));
-}
+    &--top {
+      top: -100px;
+      right: -60px;
+      background: radial-gradient(circle, rgba(29, 185, 84, 0.8), rgba(12, 26, 20, 0));
+    }
 
-.callback-background__gradient--bottom {
-  bottom: -120px;
-  left: -80px;
-  background: radial-gradient(circle, rgba(25, 215, 96, 0.55), rgba(12, 34, 24, 0));
+    &--bottom {
+      bottom: -120px;
+      left: -80px;
+      background: radial-gradient(circle, rgba(25, 215, 96, 0.55), rgba(12, 34, 24, 0));
+    }
+  }
 }
 
 .callback-card {
@@ -166,31 +166,31 @@ const isError = computed(() => status.value === 'error');
   background: rgba(14, 19, 29, 0.92);
   border: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
-}
 
-.callback-card__header {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
 
-.callback-card__avatar {
-  box-shadow: 0 20px 38px rgba(29, 185, 84, 0.45);
-}
+  &__avatar {
+    box-shadow: 0 20px 38px rgba(29, 185, 84, 0.45);
+  }
 
-.callback-card__status {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 1.5rem;
-  border-radius: 20px;
-  background: rgba(22, 28, 41, 0.8);
-  margin-bottom: 2.2rem;
-}
+  &__status {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    border-radius: 20px;
+    background: rgba(22, 28, 41, 0.8);
+    margin-bottom: 2.2rem;
 
-.callback-card__status-avatar {
-  box-shadow: 0 18px 36px rgba(29, 185, 84, 0.35);
+    &-avatar {
+      box-shadow: 0 18px 36px rgba(29, 185, 84, 0.35);
+    }
+  }
 }
 
 .callback-timeline {

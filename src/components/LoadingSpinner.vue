@@ -37,18 +37,18 @@ withDefaults(defineProps<Props>(), {
   align-items: center;
   justify-content: center;
   gap: 1rem;
-}
 
-.loading-spinner--overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 9999;
-}
+  &--overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+  }
 
-.loading-spinner__text {
-  color: var(--base-600);
-  font-size: var(--text-sm);
-  text-align: center;
+  &__text {
+    color: var(--base-600);
+    font-size: var(--text-sm);
+    text-align: center;
+  }
 }
 </style>

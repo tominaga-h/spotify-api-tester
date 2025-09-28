@@ -103,7 +103,6 @@ const isError = computed(() => status.value === 'error');
 </template>
 
 <style lang="scss">
-// Minimal Login Page
 .login-page {
   min-height: 100vh;
   display: flex;
@@ -118,7 +117,6 @@ const isError = computed(() => status.value === 'error');
   padding: var(--space-8);
 }
 
-// Clean Login Card
 .login-card {
   background: var(--base-100);
   border: var(--border-subtle);
@@ -132,7 +130,6 @@ const isError = computed(() => status.value === 'error');
   }
 }
 
-// Minimal Header
 .login-header {
   margin-bottom: var(--space-10);
   text-align: center;
@@ -144,23 +141,23 @@ const isError = computed(() => status.value === 'error');
   line-height: 1;
   margin-bottom: var(--space-4);
   color: var(--base-900);
-}
 
-.login-title__primary {
-  display: block;
-  font-variation-settings: 'wght' 800;
-  background: var(--gradient-neon-2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: textGlow 3s ease-in-out infinite;
-}
+  &__primary {
+    display: block;
+    font-variation-settings: 'wght' 800;
+    background: var(--gradient-neon-2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: textGlow 3s ease-in-out infinite;
+  }
 
-.login-title__secondary {
-  display: block;
-  font-variation-settings: 'wght' 200;
-  color: var(--base-600);
-  margin-top: var(--space-1);
+  &__secondary {
+    display: block;
+    font-variation-settings: 'wght' 200;
+    color: var(--base-600);
+    margin-top: var(--space-1);
+  }
 }
 
 .login-description {
@@ -171,7 +168,6 @@ const isError = computed(() => status.value === 'error');
   margin: 0;
 }
 
-// Status Section
 .login-status {
   display: flex;
   align-items: center;
@@ -205,7 +201,6 @@ const isError = computed(() => status.value === 'error');
   margin: 0;
 }
 
-// Actions Section
 .login-actions {
   margin-bottom: var(--space-6);
 }
@@ -268,7 +263,6 @@ const isError = computed(() => status.value === 'error');
   font-variation-settings: 'wght' 400;
 }
 
-// Error Alert Override
 .v-alert {
   background: var(--base-100) !important;
   border: var(--border-subtle) !important;
@@ -277,7 +271,6 @@ const isError = computed(() => status.value === 'error');
   margin-bottom: var(--space-6) !important;
 }
 
-// Responsive Design
 @media (max-width: 500px) {
   .login-container {
     padding: var(--space-6);

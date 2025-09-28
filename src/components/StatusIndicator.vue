@@ -58,37 +58,45 @@ const chipColor = computed(() => statusMeta.value?.chipColor ?? 'warning')
   align-items: center;
   gap: var(--space-3);
   margin-bottom: var(--space-8);
-}
 
-.status-indicator__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--base-500);
-  transition: background-color var(--duration-normal) var(--ease-out);
-}
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--base-500);
+    transition: background-color var(--duration-normal) var(--ease-out);
+  }
 
-.status-indicator--success .status-indicator__dot {
-  background: var(--status-success);
-  box-shadow: var(--glow-green);
-  animation: neonPulse 2s ease-in-out infinite;
-}
+  &__text {
+    font-size: var(--text-sm);
+    color: var(--base-600);
+    font-variation-settings: 'wght' 500;
+  }
 
-.status-indicator--warning .status-indicator__dot {
-  background: var(--status-warning);
-}
+  &--success {
+    .status-indicator__dot {
+      background: var(--status-success);
+      box-shadow: var(--glow-green);
+      animation: neonPulse 2s ease-in-out infinite;
+    }
+  }
 
-.status-indicator--error .status-indicator__dot {
-  background: var(--status-error);
-}
+  &--warning {
+    .status-indicator__dot {
+      background: var(--status-warning);
+    }
+  }
 
-.status-indicator--info .status-indicator__dot {
-  background: var(--status-info);
-}
+  &--error {
+    .status-indicator__dot {
+      background: var(--status-error);
+    }
+  }
 
-.status-indicator__text {
-  font-size: var(--text-sm);
-  color: var(--base-600);
-  font-variation-settings: 'wght' 500;
+  &--info {
+    .status-indicator__dot {
+      background: var(--status-info);
+    }
+  }
 }
 </style>

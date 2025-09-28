@@ -74,21 +74,21 @@ const profileImage = computed(() => props.profile?.images?.[0]?.url ?? null)
   overflow: hidden;
   border-radius: var(--radius-sharp);
   background: var(--base-150);
-}
 
-.profile-avatar__image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+  &__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 
-.profile-avatar__placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--base-500);
+  &__placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--base-500);
+  }
 }
 
 .profile-info {
@@ -120,15 +120,15 @@ const profileImage = computed(() => props.profile?.images?.[0]?.url ?? null)
   border-radius: var(--radius-sharp);
   color: var(--base-500);
   text-align: center;
-}
 
-.connection-placeholder__icon {
-  opacity: 0.6;
-}
+  &__icon {
+    opacity: 0.6;
+  }
 
-.connection-placeholder__text {
-  font-size: var(--text-sm);
-  font-variation-settings: 'wght' 500;
-  margin: 0;
+  &__text {
+    font-size: var(--text-sm);
+    font-variation-settings: 'wght' 500;
+    margin: 0;
+  }
 }
 </style>

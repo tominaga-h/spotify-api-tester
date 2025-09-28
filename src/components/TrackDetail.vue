@@ -104,14 +104,18 @@ const trackDetails = computed(() => [
   min-height: 100%;
   display: flex;
   flex-direction: column;
-}
 
-.track-card__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.75rem;
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+  }
+
+  &__alerts {
+    margin-top: auto;
+  }
 }
 
 .track-details-grid {
@@ -130,48 +134,44 @@ const trackDetails = computed(() => [
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   transition: all 0.2s ease;
-}
 
-.track-detail-card:hover {
-  background: rgba(255, 255, 255, 0.06);
-  transform: translateY(-1px);
-}
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateY(-1px);
+  }
 
-.track-detail-card__icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: rgba(29, 185, 84, 0.15);
-  color: rgb(29, 185, 84);
-  flex-shrink: 0;
-}
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(29, 185, 84, 0.15);
+    color: rgb(29, 185, 84);
+    flex-shrink: 0;
+  }
 
-.track-detail-card__content {
-  flex: 1;
-  min-width: 0;
-}
+  &__content {
+    flex: 1;
+    min-width: 0;
+  }
 
-.track-detail-card__label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.6);
-  margin-bottom: 0.25rem;
-}
+  &__label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 0.25rem;
+  }
 
-.track-detail-card__value {
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.9);
-  word-break: break-word;
-}
-
-.track-card__alerts {
-  margin-top: auto;
+  &__value {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    word-break: break-word;
+  }
 }
 
 @media (max-width: 960px) {
@@ -182,11 +182,11 @@ const trackDetails = computed(() => [
 
   .track-detail-card {
     padding: 1rem;
-  }
 
-  .track-detail-card__icon {
-    width: 40px;
-    height: 40px;
+    &__icon {
+      width: 40px;
+      height: 40px;
+    }
   }
 }
 
@@ -195,10 +195,10 @@ const trackDetails = computed(() => [
     flex-direction: column;
     text-align: center;
     gap: 0.75rem;
-  }
 
-  .track-detail-card__content {
-    text-align: center;
+    &__content {
+      text-align: center;
+    }
   }
 }
 </style>
