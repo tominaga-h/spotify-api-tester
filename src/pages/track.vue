@@ -103,9 +103,18 @@ const handleRefresh = () => {
           <VChip :color="statusChipColor" variant="tonal" prepend-icon="mdi-account-music">
             {{ isAuthenticated ? 'Connected' : isAuthenticating ? 'Authenticating…' : 'Awaiting login' }}
           </VChip>
-          <VBtn variant="text" color="surface" class="track-hero__home" prepend-icon="mdi-home" @click="goHome">
-            ホームへ戻る
-          </VBtn>
+          <div class="track-hero__header-right">
+            <VBtn variant="text" color="surface" class="track-hero__home" prepend-icon="mdi-home" @click="goHome">
+              ホームへ戻る
+            </VBtn>
+            <div v-if="track?.id" class="track-hero__qr">
+              <QRCodeDisplay
+                :track-id="track.id"
+                :loading="loading"
+                hero-mode
+              />
+            </div>
+          </div>
         </div>
 
         <div class="track-hero__content">
@@ -179,7 +188,7 @@ const handleRefresh = () => {
 
     <VContainer class="track-content py-10" max-width="1200">
       <VRow align="stretch" class="g-6">
-        <VCol cols="12" lg="4">
+        <VCol cols="12" md="6">
           <TrackDetail
             :track-name="track?.name"
             :artist-name="artistNames || undefined"
@@ -191,14 +200,7 @@ const handleRefresh = () => {
           />
         </VCol>
 
-        <VCol cols="12" lg="4">
-          <QRCodeDisplay
-            :track-id="track?.id"
-            :loading="loading"
-          />
-        </VCol>
-
-        <VCol cols="12" lg="4">
+        <VCol cols="12" md="6">
           <PlaylistCard
             :playlist="playlist"
             :loading="playlistLoading"
@@ -258,6 +260,17 @@ const handleRefresh = () => {
     justify-content: space-between;
     gap: 1rem;
     margin-bottom: 2.5rem;
+  }
+
+  &__header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  &__qr {
+    display: flex;
+    align-items: center;
   }
 
   &__home {

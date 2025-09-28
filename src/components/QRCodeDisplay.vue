@@ -5,11 +5,13 @@ import QRCode from 'qrcode';
 interface Props {
   trackId?: string | null;
   loading?: boolean;
+  heroMode?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   trackId: null,
-  loading: false
+  loading: false,
+  heroMode: false
 });
 
 const qrCodeDataUrl = ref<string | null>(null);
@@ -32,7 +34,7 @@ const generateQRCode = async () => {
 
   try {
     const dataUrl = await QRCode.toDataURL(spotifyUrl.value, {
-      width: 200,
+      width: props.heroMode ? 120 : 200,
       margin: 2,
       color: {
         dark: '#1DB954',
@@ -52,7 +54,26 @@ watch(spotifyUrl, generateQRCode, { immediate: true });
 </script>
 
 <template>
-  <VCard class="qr-code-card">
+  <div v-if="heroMode" class="qr-code-hero">
+    <div v-if="loading || props.loading" class="qr-code-hero__loading">
+      <VProgressCircular indeterminate color="primary" size="20" />
+    </div>
+    <div v-else-if="qrLoading" class="qr-code-hero__loading">
+      <VProgressCircular indeterminate color="primary" size="20" />
+    </div>
+    <div v-else-if="qrCodeDataUrl" class="qr-code-hero__qr">
+      <VTooltip location="bottom">
+        <template #activator="{ props: tooltipProps }">
+          <div v-bind="tooltipProps" class="qr-code-hero__qr-image">
+            <img :src="qrCodeDataUrl" alt="Spotify QR Code" />
+          </div>
+        </template>
+        <span>QRコードをスキャンしてSpotifyで楽曲を開く</span>
+      </VTooltip>
+    </div>
+  </div>
+
+  <VCard v-else class="qr-code-card">
     <VCardTitle class="qr-code-card__header">
       <VIcon icon="mdi-qrcode" class="me-2" />
       Spotify QRコード
@@ -107,6 +128,43 @@ watch(spotifyUrl, generateQRCode, { immediate: true });
 </template>
 
 <style lang="scss" scoped>
+.qr-code-hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+  }
+
+  &__qr {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+  }
+
+  &__qr-image {
+    padding: 8px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(29, 185, 84, 0.3);
+
+    img {
+      display: block;
+      width: 80px;
+      height: 80px;
+    }
+  }
+}
+
 .qr-code-card {
   background: rgba(14, 19, 29, 0.92);
   border: 1px solid rgba(255, 255, 255, 0.05);
