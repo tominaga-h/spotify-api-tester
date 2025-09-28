@@ -6,6 +6,7 @@ import { useSpotifyTrack } from '@/composables/useSpotifyTrack';
 import { useSpotifyPlaylist } from '@/composables/useSpotifyPlaylist';
 import TrackDetail from '@/components/TrackDetail.vue';
 import PlaylistCard from '@/components/PlaylistCard.vue';
+import QRCodeDisplay from '@/components/QRCodeDisplay.vue';
 
 const router = useRouter();
 const { status, error } = useSpotifyAuth();
@@ -178,7 +179,7 @@ const handleRefresh = () => {
 
     <VContainer class="track-content py-10" max-width="1200">
       <VRow align="stretch" class="g-6">
-        <VCol cols="12" md="6">
+        <VCol cols="12" lg="4">
           <TrackDetail
             :track-name="track?.name"
             :artist-name="artistNames || undefined"
@@ -190,7 +191,14 @@ const handleRefresh = () => {
           />
         </VCol>
 
-        <VCol cols="12" md="6">
+        <VCol cols="12" lg="4">
+          <QRCodeDisplay
+            :track-id="track?.id"
+            :loading="loading"
+          />
+        </VCol>
+
+        <VCol cols="12" lg="4">
           <PlaylistCard
             :playlist="playlist"
             :loading="playlistLoading"
