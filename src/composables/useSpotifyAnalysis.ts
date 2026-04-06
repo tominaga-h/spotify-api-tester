@@ -92,21 +92,25 @@ async function fetchPlaylists(client: SpotifyApi, maxPlaylists = 20): Promise<Pl
   const summaries: PlaylistSummary[] = []
 
   for (const pl of res.items) {
-    const artistCounts = new Map<string, number>()
+    let topArtists: { name: string; count: number }[] = []
 
-    const tracks = await client.playlists.getPlaylistItems(pl.id, undefined, undefined, 100)
-    for (const item of tracks.items) {
-      const track = item?.track
-      if (!track || !('artists' in track)) continue
-      for (const artist of track.artists) {
-        artistCounts.set(artist.name, (artistCounts.get(artist.name) ?? 0) + 1)
+    try {
+      const artistCounts = new Map<string, number>()
+      const tracks = await client.playlists.getPlaylistItems(pl.id, undefined, undefined, 100)
+      for (const item of tracks.items) {
+        const track = item?.track
+        if (!track || !('artists' in track)) continue
+        for (const artist of track.artists) {
+          artistCounts.set(artist.name, (artistCounts.get(artist.name) ?? 0) + 1)
+        }
       }
+      topArtists = [...artistCounts.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([name, count]) => ({ name, count }))
+    } catch {
+      console.warn(`Playlist "${pl.name}" (${pl.id}) tracks fetch failed, skipping details`)
     }
-
-    const topArtists = [...artistCounts.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([name, count]) => ({ name, count }))
 
     summaries.push({
       id: pl.id,
