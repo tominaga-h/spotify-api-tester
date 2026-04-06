@@ -102,28 +102,34 @@ function averageAudioFeatures(features: AudioFeaturesSummary[]): AudioFeaturesSu
 
 async function fetchAudioFeaturesForTracks(client: SpotifyApi, trackIds: string[]): Promise<AudioFeaturesSummary | null> {
   if (trackIds.length === 0) return null
-  const batches: string[][] = []
-  for (let i = 0; i < trackIds.length; i += 100) {
-    batches.push(trackIds.slice(i, i + 100))
-  }
-  const allFeatures: AudioFeaturesSummary[] = []
-  for (const batch of batches) {
-    const res = await client.tracks.audioFeatures(batch)
-    for (const f of res) {
-      if (!f) continue
-      allFeatures.push({
-        danceability: f.danceability,
-        energy: f.energy,
-        valence: f.valence,
-        acousticness: f.acousticness,
-        instrumentalness: f.instrumentalness,
-        speechiness: f.speechiness,
-        liveness: f.liveness,
-        tempo: f.tempo,
-      })
+  try {
+    const batches: string[][] = []
+    for (let i = 0; i < trackIds.length; i += 100) {
+      batches.push(trackIds.slice(i, i + 100))
     }
+    const allFeatures: AudioFeaturesSummary[] = []
+    for (const batch of batches) {
+      const res = await client.tracks.audioFeatures(batch)
+      for (const f of res) {
+        if (!f) continue
+        allFeatures.push({
+          danceability: f.danceability,
+          energy: f.energy,
+          valence: f.valence,
+          acousticness: f.acousticness,
+          instrumentalness: f.instrumentalness,
+          speechiness: f.speechiness,
+          liveness: f.liveness,
+          tempo: f.tempo,
+        })
+      }
+    }
+    return averageAudioFeatures(allFeatures)
+  } catch {
+    // audio-features API requires Extended Quota Mode (restricted since late 2024)
+    console.warn('Audio features API unavailable (403). Skipping.')
+    return null
   }
-  return averageAudioFeatures(allFeatures)
 }
 
 function computeGenres(artists: ArtistSummary[]): GenreCount[] {
