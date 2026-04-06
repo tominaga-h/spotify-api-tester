@@ -70,7 +70,7 @@ async function fetchTopArtists(client: SpotifyApi, timeRange: TimeRange, limit =
   const res = await client.currentUser.topItems('artists', timeRange, limit)
   return res.items.map((a) => ({
     name: a.name,
-    genres: a.genres,
+    genres: a.genres ?? [],
     popularity: a.popularity,
     imageUrl: a.images?.[0]?.url ?? null,
   }))
@@ -129,7 +129,7 @@ async function fetchAudioFeaturesForTracks(client: SpotifyApi, trackIds: string[
 function computeGenres(artists: ArtistSummary[]): GenreCount[] {
   const counts = new Map<string, number>()
   for (const a of artists) {
-    for (const g of a.genres) {
+    for (const g of (a.genres ?? [])) {
       counts.set(g, (counts.get(g) ?? 0) + 1)
     }
   }
