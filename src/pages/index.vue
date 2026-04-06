@@ -27,6 +27,10 @@ const navigateToTrack = () => {
   router.push('/track');
 };
 
+const navigateToAnalysis = () => {
+  router.push('/analysis');
+};
+
 </script>
 
 <template>
@@ -50,6 +54,9 @@ const navigateToTrack = () => {
           <div class="hero-actions">
             <ActionButton variant="primary" @click="navigateToTrack">
               Now Playing
+            </ActionButton>
+            <ActionButton variant="outline" @click="navigateToAnalysis">
+              Music Analysis
             </ActionButton>
             <ActionButton variant="secondary" @click="handleNavigateToLogin">
               {{ isAuthenticated ? 'Re-authenticate' : 'Sign In' }}
