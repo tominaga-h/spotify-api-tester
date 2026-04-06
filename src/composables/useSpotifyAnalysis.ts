@@ -16,17 +16,6 @@ export interface TrackSummary {
   popularity: number
 }
 
-export interface AudioFeaturesSummary {
-  danceability: number
-  energy: number
-  valence: number
-  acousticness: number
-  instrumentalness: number
-  speechiness: number
-  liveness: number
-  tempo: number
-}
-
 export interface PlaylistSummary {
   id: string
   name: string
@@ -34,7 +23,6 @@ export interface PlaylistSummary {
   owner: string
   isPublic: boolean
   topArtists: { name: string; count: number }[]
-  audioFeatures: AudioFeaturesSummary | null
 }
 
 export interface GenreCount {
@@ -56,11 +44,6 @@ export interface AnalysisResult {
     longTerm: TrackSummary[]
   }
   genres: GenreCount[]
-  audioFeatures: {
-    shortTerm: AudioFeaturesSummary | null
-    mediumTerm: AudioFeaturesSummary | null
-    longTerm: AudioFeaturesSummary | null
-  }
   playlists: PlaylistSummary[]
 }
 
@@ -86,52 +69,6 @@ async function fetchTopTracks(client: SpotifyApi, timeRange: TimeRange, limit = 
   }))
 }
 
-function averageAudioFeatures(features: AudioFeaturesSummary[]): AudioFeaturesSummary | null {
-  if (features.length === 0) return null
-  const keys: (keyof AudioFeaturesSummary)[] = [
-    'danceability', 'energy', 'valence', 'acousticness',
-    'instrumentalness', 'speechiness', 'liveness', 'tempo',
-  ]
-  const result = {} as AudioFeaturesSummary
-  for (const key of keys) {
-    const sum = features.reduce((acc, f) => acc + f[key], 0)
-    result[key] = Math.round((sum / features.length) * 1000) / 1000
-  }
-  return result
-}
-
-async function fetchAudioFeaturesForTracks(client: SpotifyApi, trackIds: string[]): Promise<AudioFeaturesSummary | null> {
-  if (trackIds.length === 0) return null
-  try {
-    const batches: string[][] = []
-    for (let i = 0; i < trackIds.length; i += 100) {
-      batches.push(trackIds.slice(i, i + 100))
-    }
-    const allFeatures: AudioFeaturesSummary[] = []
-    for (const batch of batches) {
-      const res = await client.tracks.audioFeatures(batch)
-      for (const f of res) {
-        if (!f) continue
-        allFeatures.push({
-          danceability: f.danceability,
-          energy: f.energy,
-          valence: f.valence,
-          acousticness: f.acousticness,
-          instrumentalness: f.instrumentalness,
-          speechiness: f.speechiness,
-          liveness: f.liveness,
-          tempo: f.tempo,
-        })
-      }
-    }
-    return averageAudioFeatures(allFeatures)
-  } catch {
-    // audio-features API requires Extended Quota Mode (restricted since late 2024)
-    console.warn('Audio features API unavailable (403). Skipping.')
-    return null
-  }
-}
-
 function computeGenres(artists: ArtistSummary[]): GenreCount[] {
   const counts = new Map<string, number>()
   for (const a of artists) {
@@ -140,6 +77,7 @@ function computeGenres(artists: ArtistSummary[]): GenreCount[] {
     }
   }
   const total = [...counts.values()].reduce((a, b) => a + b, 0)
+  if (total === 0) return []
   return [...counts.entries()]
     .map(([genre, count]) => ({
       genre,
@@ -155,14 +93,11 @@ async function fetchPlaylists(client: SpotifyApi, maxPlaylists = 20): Promise<Pl
 
   for (const pl of res.items) {
     const artistCounts = new Map<string, number>()
-    const trackIds: string[] = []
 
-    // Fetch playlist tracks (up to 100)
     const tracks = await client.playlists.getPlaylistItems(pl.id, undefined, undefined, 100)
     for (const item of tracks.items) {
       const track = item?.track
       if (!track || !('artists' in track)) continue
-      if (track.id) trackIds.push(track.id)
       for (const artist of track.artists) {
         artistCounts.set(artist.name, (artistCounts.get(artist.name) ?? 0) + 1)
       }
@@ -173,10 +108,6 @@ async function fetchPlaylists(client: SpotifyApi, maxPlaylists = 20): Promise<Pl
       .slice(0, 5)
       .map(([name, count]) => ({ name, count }))
 
-    // Audio features for playlist (sample up to 50 tracks)
-    const sampleIds = trackIds.slice(0, 50)
-    const audioFeatures = await fetchAudioFeaturesForTracks(client, sampleIds)
-
     summaries.push({
       id: pl.id,
       name: pl.name,
@@ -184,7 +115,6 @@ async function fetchPlaylists(client: SpotifyApi, maxPlaylists = 20): Promise<Pl
       owner: pl.owner.display_name ?? pl.owner.id,
       isPublic: pl.public ?? false,
       topArtists,
-      audioFeatures,
     })
   }
 
@@ -212,7 +142,6 @@ export function useSpotifyAnalysis() {
     result.value = null
 
     try {
-      // Top Artists (3 time ranges in parallel)
       progress.value = 'トップアーティストを取得中...'
       const [artistsShort, artistsMedium, artistsLong] = await Promise.all([
         fetchTopArtists(sdk, 'short_term'),
@@ -220,7 +149,6 @@ export function useSpotifyAnalysis() {
         fetchTopArtists(sdk, 'long_term'),
       ])
 
-      // Top Tracks (3 time ranges in parallel)
       progress.value = 'トップトラックを取得中...'
       const [tracksShort, tracksMedium, tracksLong] = await Promise.all([
         fetchTopTracks(sdk, 'short_term'),
@@ -228,7 +156,6 @@ export function useSpotifyAnalysis() {
         fetchTopTracks(sdk, 'long_term'),
       ])
 
-      // Genre distribution (from all unique artists)
       progress.value = 'ジャンル分布を計算中...'
       const allArtistsMap = new Map<string, ArtistSummary>()
       for (const a of [...artistsShort, ...artistsMedium, ...artistsLong]) {
@@ -236,26 +163,6 @@ export function useSpotifyAnalysis() {
       }
       const genres = computeGenres([...allArtistsMap.values()])
 
-      // Audio features for top tracks (each time range)
-      progress.value = '音楽的特徴を分析中...'
-      const getIds = (tracks: TrackSummary[], allTracks: { id: string; name: string }[]) => {
-        // We need track IDs - refetch from API
-        return [] as string[]
-      }
-      // Fetch track IDs by re-requesting top tracks with full data
-      const [tracksShortFull, tracksMediumFull, tracksLongFull] = await Promise.all([
-        sdk.currentUser.topItems('tracks', 'short_term', 50),
-        sdk.currentUser.topItems('tracks', 'medium_term', 50),
-        sdk.currentUser.topItems('tracks', 'long_term', 50),
-      ])
-
-      const [afShort, afMedium, afLong] = await Promise.all([
-        fetchAudioFeaturesForTracks(sdk, tracksShortFull.items.map((t) => t.id)),
-        fetchAudioFeaturesForTracks(sdk, tracksMediumFull.items.map((t) => t.id)),
-        fetchAudioFeaturesForTracks(sdk, tracksLongFull.items.map((t) => t.id)),
-      ])
-
-      // Playlists
       progress.value = 'プレイリストを分析中...'
       const playlists = await fetchPlaylists(sdk)
 
@@ -272,11 +179,6 @@ export function useSpotifyAnalysis() {
           longTerm: tracksLong,
         },
         genres,
-        audioFeatures: {
-          shortTerm: afShort,
-          mediumTerm: afMedium,
-          longTerm: afLong,
-        },
         playlists,
       }
 

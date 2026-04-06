@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useSpotifyAuth } from '@/composables/useSpotifyAuth'
-import { useSpotifyAnalysis, type AudioFeaturesSummary } from '@/composables/useSpotifyAnalysis'
+import { useSpotifyAnalysis } from '@/composables/useSpotifyAnalysis'
 import ActionButton from '@/components/ActionButton.vue'
 
 const router = useRouter()
@@ -14,27 +14,6 @@ const timeRangeLabels: Record<string, string> = {
   shortTerm: '直近4週間',
   mediumTerm: '直近6ヶ月',
   longTerm: '全期間',
-}
-
-const featureLabels: Record<keyof AudioFeaturesSummary, string> = {
-  danceability: 'ダンス性',
-  energy: 'エネルギー',
-  valence: '明るさ',
-  acousticness: 'アコースティック',
-  instrumentalness: 'インスト度',
-  speechiness: 'スピーチ度',
-  liveness: 'ライブ感',
-  tempo: 'テンポ(BPM)',
-}
-
-function featurePercent(value: number, key: string): number {
-  if (key === 'tempo') return Math.min(value / 200 * 100, 100)
-  return value * 100
-}
-
-function featureDisplay(value: number, key: string): string {
-  if (key === 'tempo') return `${Math.round(value)} BPM`
-  return `${Math.round(value * 100)}%`
 }
 
 const topGenres = computed(() => result.value?.genres.slice(0, 15) ?? [])
@@ -194,45 +173,6 @@ const topGenres = computed(() => result.value?.genres.slice(0, 15) ?? [])
         </div>
       </section>
 
-      <!-- Audio Features -->
-      <section class="section">
-        <h2 class="section__title">
-          <VIcon icon="mdi-equalizer" size="24" />
-          音楽的特徴
-        </h2>
-        <VTabs v-model="featureTab" bg-color="transparent" color="cyan">
-          <VTab v-for="(label, key) in timeRangeLabels" :key="key" :value="key">
-            {{ label }}
-          </VTab>
-        </VTabs>
-        <VWindow v-model="featureTab">
-          <VWindowItem v-for="(label, key) in timeRangeLabels" :key="key" :value="key">
-            <div
-              v-if="result.audioFeatures[key as keyof typeof result.audioFeatures]"
-              class="features-grid"
-            >
-              <div
-                v-for="(fLabel, fKey) in featureLabels"
-                :key="fKey"
-                class="feature-card"
-              >
-                <div class="feature-card__label">{{ fLabel }}</div>
-                <div class="feature-card__bar-track">
-                  <div
-                    class="feature-card__bar-fill"
-                    :style="{ width: `${featurePercent(result.audioFeatures[key as keyof typeof result.audioFeatures]![fKey], fKey)}%` }"
-                  />
-                </div>
-                <div class="feature-card__value">
-                  {{ featureDisplay(result.audioFeatures[key as keyof typeof result.audioFeatures]![fKey], fKey) }}
-                </div>
-              </div>
-            </div>
-            <p v-else class="no-data">データなし</p>
-          </VWindowItem>
-        </VWindow>
-      </section>
-
       <!-- Playlists -->
       <section class="section">
         <h2 class="section__title">
@@ -253,14 +193,6 @@ const topGenres = computed(() => result.value?.genres.slice(0, 15) ?? [])
                 </span>
               </div>
             </div>
-            <div v-if="pl.audioFeatures" class="playlist-card__features">
-              <div class="playlist-card__feature-row">
-                <span>Dance {{ Math.round(pl.audioFeatures.danceability * 100) }}%</span>
-                <span>Energy {{ Math.round(pl.audioFeatures.energy * 100) }}%</span>
-                <span>Valence {{ Math.round(pl.audioFeatures.valence * 100) }}%</span>
-                <span>{{ Math.round(pl.audioFeatures.tempo) }} BPM</span>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -274,7 +206,6 @@ export default {
     return {
       artistTab: 'shortTerm',
       trackTab: 'shortTerm',
-      featureTab: 'shortTerm',
     }
   },
 }
@@ -558,52 +489,6 @@ export default {
   }
 }
 
-// Audio Features
-.features-grid {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  padding: var(--space-4) 0;
-}
-
-.feature-card {
-  display: grid;
-  grid-template-columns: 140px 1fr 80px;
-  align-items: center;
-  gap: var(--space-3);
-
-  &__label {
-    font-size: var(--text-sm);
-    font-variation-settings: 'wght' 500;
-    color: var(--base-700);
-  }
-
-  &__bar-track {
-    height: 12px;
-    background: var(--base-200);
-    overflow: hidden;
-  }
-
-  &__bar-fill {
-    height: 100%;
-    background: var(--gradient-neon-2);
-    transition: width 0.6s var(--ease-out);
-  }
-
-  &__value {
-    font-size: var(--text-sm);
-    font-variation-settings: 'wght' 600;
-    color: var(--neon-green);
-    text-align: right;
-  }
-}
-
-.no-data {
-  color: var(--base-500);
-  padding: var(--space-8) 0;
-  text-align: center;
-}
-
 // Playlist Grid
 .playlist-grid {
   display: grid;
@@ -667,19 +552,6 @@ export default {
     color: var(--base-700);
   }
 
-  &__features {
-    padding-top: var(--space-3);
-    border-top: var(--border-muted);
-  }
-
-  &__feature-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3);
-    font-size: var(--text-xs);
-    color: var(--neon-electric);
-    font-variation-settings: 'wght' 600;
-  }
 }
 
 @media (max-width: 768px) {
@@ -689,10 +561,6 @@ export default {
 
   .genre-bar {
     grid-template-columns: 100px 1fr 40px;
-  }
-
-  .feature-card {
-    grid-template-columns: 100px 1fr 60px;
   }
 
   .playlist-grid {
