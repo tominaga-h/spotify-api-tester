@@ -115,7 +115,7 @@ async function fetchPlaylists(client: SpotifyApi, maxPlaylists = 20): Promise<Pl
     summaries.push({
       id: pl.id,
       name: pl.name,
-      trackCount: pl.tracks.total,
+      trackCount: pl.tracks?.total ?? 0,
       owner: pl.owner.display_name ?? pl.owner.id,
       isPublic: pl.public ?? false,
       topArtists,
